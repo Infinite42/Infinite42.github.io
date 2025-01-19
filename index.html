@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hxdeck Task Manager</title>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@16.1.0"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            /* Base colors */
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            --success-gradient: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            
+            /* Light theme */
+            --bg-color-light: #f8fafc;
+            --text-color-light: #1e293b;
+            --card-bg-light: #ffffff;
+            --border-light: #e2e8f0;
+            
+            /* Dark theme */
+            --bg-color-dark: #0f172a;
+            --text-color-dark: #f8fafc;
+            --card-bg-dark: #1e293b;
+            --border-dark: #334155;
+            --input-bg-dark: #2d3748;
+            
+            /* Dynamic theme (will be set by JS) */
+            --bg-color: var(--bg-color-light);
+            --text-color: var(--text-color-light);
+            --card-bg: var(--card-bg-light);
+            --border-color: var(--border-light);
+            --input-bg: transparent;
+            
+            /* Add new variables */
+            --link-color-light: #4f46e5;
+            --link-color-dark: #818cf8;
+            --link-hover-bg-light: rgba(79, 70, 229, 0.1);
+            --link-hover-bg-dark: rgba(129, 140, 248, 0.1);
+        }
+
+        /* Dark mode styles */
+        [data-theme="dark"] {
+            --bg-color: var(--bg-color-dark);
+            --text-color: var(--text-color-dark);
+            --card-bg: var(--card-bg-dark);
+            --border-color: var(--border-dark);
+            --input-bg: var(--input-bg-dark);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            flex: 1;
+            max-width: 400px;
+            margin: auto;
+            padding: 3rem;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: var(--text-color);
+            text-align: center;
+            position: relative;
+        }
+
+        .form-title:after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--link-color-light);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        [data-theme="dark"] .form-group input:focus {
+            border-color: var(--link-color-dark);
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #94a3b8;
+        }
+
+        /* Add subtle hover effect */
+        .form-group input:hover {
+            border-color: var(--link-color-light);
+        }
+
+        [data-theme="dark"] .form-group input:hover {
+            border-color: var(--link-color-dark);
+        }
+
+        .mode-switch {
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .mode-switch a {
+            color: var(--link-color-dark);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        [data-theme="light"] .mode-switch a {
+            color: var(--link-color-light);
+        }
+
+        .button-group {
+            margin-top: 2rem;
+        }
+
+        .login-btn, .register-btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            background: var(--primary-gradient);
+            color: white;
+            transition: transform 0.2s;
+            margin-top: 1rem;
+            height: 48px;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn:hover, .register-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            background: var(--danger-gradient);
+            color: white;
+            margin-top: 1rem;
+        }
+
+        #status-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        #status-message.success {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        #status-message.error {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .footer .heart {
+            color: #ef4444;
+            display: inline-block;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        input {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        /* Add smooth transitions */
+        .container,
+        input,
+        #status-message {
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:after, .register-btn:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .login-btn:hover:after, .register-btn:hover:after {
+            opacity: 1;
+        }
+
+        /* Add smooth transitions */
+        input, button {
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: transform 0.3s;
+        }
+
+        .settings-btn:hover {
+            transform: rotate(45deg);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .settings-content select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .settings-content select:hover {
+            border-color: var(--link-color-light);
+        }
+
+        [data-theme="dark"] .settings-content select:hover {
+            border-color: var(--link-color-dark);
+        }
+
+        .mode-switch {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .mode-switch a {
+            color: var(--link-color-light);
+            font-weight: 500;
+        }
+
+        [data-theme="dark"] .mode-switch a {
+            color: var(--link-color-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hxdeck Task Manager</h1>
+        <button class="settings-btn" onclick="openSettings()">
+            <i class="fas fa-cog"></i>
+        </button>
+
+        <div id="login-form">
+            <div class="form-title">Login to Your Account</div>
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <div class="button-group">
+                <button class="login-btn" onclick="login()">Login</button>
+            </div>
+        </div>
+
+        <div id="register-form">
+            <div class="form-title">Create New Account</div>
+            <div class="form-group">
+                <label for="register-email">Email</label>
+                <input type="email" id="register-email" required>
+            </div>
+            <div class="form-group">
+                <label for="register-password">Password</label>
+                <input type="password" id="register-password" required>
+            </div>
+            <div class="button-group">
+                <button class="register-btn" onclick="register()">Register</button>
+            </div>
+        </div>
+
+        <div class="mode-switch">
+            <span id="login-switch" onclick="switchMode('login')" style="display: none;">
+                Already have an account? <a>Login here</a>
+            </span>
+            <span id="register-switch" onclick="switchMode('register')">
+                Don't have an account? <a>Register here</a>
+            </span>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        <div id="status-message"></div>
+    </div>
+    
+    <div class="footer">
+        Thanks for using Hxdeck Task Manager <span class="heart">❤</span>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content settings-modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-modal" onclick="closeSettingsModal()">&times;</button>
+            </div>
+            <div class="settings-content">
+                <div class="form-group">
+                    <label>Theme</label>
+                    <select id="theme-select" onchange="changeTheme(this.value)">
+                        <option value="system">Device Default</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Appwrite client properly
+        const client = new Appwrite.Client();
+        
+        // Add debugging
+        const currentOrigin = window.location.origin;
+        console.log('Current origin:', currentOrigin);
+        
+        client
+            .setEndpoint('https://cloud.appwrite.io/v1')
+            .setProject('6786fe750018c76b54f3');
+
+        const account = new Appwrite.Account(client);
+
+        // Add error handler for all requests
+        client.subscribe('request', (payload) => {
+            console.log('Request:', payload);
+        });
+
+        client.subscribe('response', (payload) => {
+            console.log('Response:', payload);
+        });
+
+        client.subscribe('error', (payload) => {
+            console.error('Error:', payload);
+        });
+
+        // Function declarations moved outside window.onload
+        async function checkAuth() {
+            try {
+                // Check if user is logged in
+                const user = await account.get();
+                showLoggedInState(user);
+            } catch (error) {
+                console.log('Not logged in:', error.message);
+                showLoggedOutState();
+            }
+        }
+
+        function switchMode(mode) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const loginSwitch = document.getElementById('login-switch');
+            const registerSwitch = document.getElementById('register-switch');
+
+            if (mode === 'register') {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                loginSwitch.style.display = 'block';
+                registerSwitch.style.display = 'none';
+            } else {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                loginSwitch.style.display = 'none';
+                registerSwitch.style.display = 'block';
+            }
+        }
+
+        async function register() {
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            if (!email || !password) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                console.log('Attempting registration...');
+                const user = await account.create(
+                    Appwrite.ID.unique(),
+                    email,
+                    password,
+                    email // name
+                );
+                console.log('User created:', user);
+
+                // Try to login
+                try {
+                    const session = await account.createSession(email, password);
+                    console.log('Session created:', session);
+                    const loggedInUser = await account.get();
+                    showLoggedInState(loggedInUser);
+                    showMessage('Registration and login successful!', 'success');
+                } catch (loginError) {
+                    console.error('Auto-login error:', loginError);
+                    switchMode('login');
+                    showMessage('Registration successful! Please login.', 'success');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                let errorMessage = 'Registration failed: ';
+                
+                switch(error.code) {
+                    case 400:
+                        errorMessage += 'Invalid email or password format';
+                        break;
+                    case 409:
+                        errorMessage += 'Email already exists';
+                        break;
+                    case 429:
+                        errorMessage += 'Too many attempts, please try again later';
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+                
+                showMessage(errorMessage, 'error');
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const account = new Appwrite.Account(client);
+                console.log('Attempting login...');
+                const session = await account.createEmailPasswordSession(email, password);
+                console.log('Login session:', session);
+                const user = await account.get();
+                localStorage.setItem('sessionActive', 'true');
+                showLoggedInState(user);
+                showMessage('Successfully logged in!', 'success');
+            } catch (error) {
+                console.error('Login error:', error);
+                if (error.code === 401) {
+                    showMessage('Invalid credentials. Please try again.', 'error');
+                } else {
+                    showMessage(`Login error: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function logout() {
+            try {
+                await account.deleteSession('current');
+                showLoggedOutState();
+                showMessage('Successfully logged out!', 'success');
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+
+        function showLoggedInState(user) {
+            // Redirect to tasks page immediately
+            window.location.href = 'tasks.html';
+        }
+
+        function showLoggedOutState() {
+            switchMode('login');
+            document.querySelector('.mode-switch').style.display = 'block';
+            document.querySelector('.logout-btn').style.display = 'none';
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+            document.getElementById('register-email').value = '';
+            document.getElementById('register-password').value = '';
+        }
+
+        function showMessage(message, type) {
+            const statusElement = document.getElementById('status-message');
+            statusElement.innerHTML = message;
+            statusElement.className = type;
+            statusElement.style.display = 'block';
+        }
+
+        // Only keep initialization in window.onload
+        window.onload = function() {
+            checkAuth();
+            initializeTheme();
+        };
+
+        // Add theme management functions
+        function initializeTheme() {
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                if (document.getElementById('theme-select')) {
+                    document.getElementById('theme-select').value = savedTheme;
+                }
+            } else {
+                // Check system preference
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    if (document.getElementById('theme-select')) {
+                        document.getElementById('theme-select').value = 'dark';
+                    }
+                }
+            }
+
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (!localStorage.getItem('theme') || localStorage.getItem('theme') === 'system') {
+                    document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+                }
+            });
+        }
+
+        // Call initializeTheme when the page loads
+        document.addEventListener('DOMContentLoaded', initializeTheme);
+
+        function openSettings() {
+            document.getElementById('settings-modal').style.display = 'block';
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            document.getElementById('theme-select').value = savedTheme;
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        // Add this function after the initializeTheme function
+        function changeTheme(value) {
+            if (value === 'system') {
+                // Use system preference
+                const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', value);
+            }
+            localStorage.setItem('theme', value);
+        }
+    </script>
+</body>
+</html>

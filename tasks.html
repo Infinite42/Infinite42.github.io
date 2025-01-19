@@ -1,0 +1,2131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hxdeck Task Manager</title>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@16.1.0"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        :root {
+            /* Base colors */
+            --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            --success-gradient: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --modal-gradient: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-color) 100%);
+            --completed-gradient: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            --menu-gradient: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-color) 100%);
+            
+            /* Light theme */
+            --bg-color-light: #f3f4f6;
+            --text-color-light: #1f2937;
+            --card-bg-light: #ffffff;
+            --border-light: #e5e7eb;
+            
+            /* Dark theme */
+            --bg-color-dark: #111827;
+            --text-color-dark: #f9fafb;
+            --card-bg-dark: #1f2937;
+            --border-dark: #374151;
+            --input-bg-dark: #374151;
+            
+            /* Dynamic theme (will be set by JS) */
+            --bg-color: var(--bg-color-light);
+            --text-color: var(--text-color-light);
+            --card-bg: var(--card-bg-light);
+            --border-color: var(--border-light);
+            
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(74, 144, 226, 0.1);
+        }
+
+        .add-task-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: transform 0.3s;
+        }
+
+        .add-task-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .tasks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .task-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .task-card {
+            background: var(--card-bg);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-card.completed {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            transition: all 0.3s;
+        }
+
+        .task-card.completed:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+        }
+
+        .task-card.completed .task-content,
+        .task-card.completed .task-meta,
+        .task-card.completed .task-actions button,
+        .task-card.completed .due-date,
+        .task-card.completed .recurring-icon,
+        .task-card.completed .subtask-count {
+            color: white;
+        }
+
+        .task-card.completed .task-checkbox {
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .task-card.completed .task-checkbox:checked {
+            background: white;
+            color: #10b981;
+        }
+
+        .task-card.completed .delete-task-btn {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .task-card.completed .delete-task-btn:hover {
+            color: white;
+        }
+
+        .task-card .title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-card .meta {
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .task-card .due-date {
+            color: var(--primary-color);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar .progress {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--modal-gradient);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: var(--card-bg);
+            color: var(--text-color);
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .subtasks {
+            margin: 1rem 0;
+        }
+
+        .subtask-item {
+            background: var(--menu-gradient);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .subtask-item:hover {
+            transform: translateX(4px);
+        }
+
+        .subtask-item.completed {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+        }
+
+        .subtask-item.completed input[type="checkbox"],
+        .subtask-item.completed button {
+            color: white;
+        }
+
+        .task-checkbox {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .task-checkbox:checked {
+            background: var(--primary-gradient);
+            border-color: transparent;
+        }
+
+        .delete-task-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 0.5rem;
+            opacity: 0.8;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-task-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .delete-task-btn i {
+            font-size: 1.1rem;
+        }
+
+        .completed-task {
+            opacity: 0.7;
+            text-decoration: line-through;
+        }
+
+        .restore-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .completed-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #eee;
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: transform 0.3s;
+        }
+
+        .settings-btn:hover {
+            transform: rotate(45deg);
+        }
+
+        .recurring-options {
+            background: var(--menu-gradient);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .recurring-details {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .recurring-type select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .weekday-buttons {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .weekday-buttons label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem;
+            border: 1px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .weekday-buttons label:hover {
+            background: rgba(74, 144, 226, 0.1);
+        }
+
+        .weekday-buttons label input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .monthly-selector select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .settings-content {
+            padding: 1rem 0;
+        }
+
+        .settings-content select {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            border: 1px solid #ddd;
+        }
+
+        .subtasks-list {
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        #status-message {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            border-radius: var(--border-radius);
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        .success {
+            color: var(--success-color);
+        }
+
+        .error {
+            color: var(--danger-color);
+        }
+
+        .task-card .task-content {
+            flex: 1;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .task-details-content {
+            padding: 1rem 0;
+        }
+
+        .task-title-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .title-input {
+            font-size: 1.5rem;
+            font-weight: 600;
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            padding: 0.5rem;
+            flex: 1;
+            margin-right: 1rem;
+        }
+
+        .title-input:focus {
+            border-bottom-color: var(--primary-color);
+            outline: none;
+        }
+
+        .description-input {
+            width: 100%;
+            min-height: 100px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            font-family: inherit;
+        }
+
+        .date-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .subtasks-section {
+            margin-top: 2rem;
+        }
+
+        .subtasks-section h3 {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .detail-subtask-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: var(--bg-color);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-subtask-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .detail-subtask-item input[type="text"] {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 0.25rem;
+        }
+
+        .detail-subtask-item input[type="text"]:focus {
+            outline: none;
+            border-bottom: 1px solid var(--primary-color);
+        }
+
+        .recurring-info {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--bg-color);
+            border-radius: var(--border-radius);
+        }
+
+        /* Dark mode styles */
+        [data-theme="dark"] {
+            --bg-color: var(--bg-color-dark);
+            --text-color: var(--text-color-dark);
+            --card-bg: var(--card-bg-dark);
+            --border-color: var(--border-dark);
+            --input-bg: #2d3748;
+            --modal-overlay: rgba(0, 0, 0, 0.7);
+            --modal-bg: #1a2234;
+        }
+
+        /* Fix modal content background in dark mode */
+        [data-theme="dark"] .modal-content {
+            background: var(--modal-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Fix input backgrounds in dark mode */
+        [data-theme="dark"] .title-input,
+        [data-theme="dark"] .description-input {
+            background: var(--input-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        /* Fix modal header in dark mode */
+        [data-theme="dark"] .modal-header h2 {
+            color: var(--text-color);
+        }
+
+        /* Fix subtask items in dark mode */
+        [data-theme="dark"] .subtask-item {
+            background: var(--card-bg-dark);
+        }
+
+        [data-theme="dark"] .subtask-item input[type="text"] {
+            background: transparent;
+            color: var(--text-color);
+        }
+
+        /* Fix recurring options in dark mode */
+        [data-theme="dark"] .recurring-options {
+            background: var(--input-bg);
+        }
+
+        /* Fix weekday buttons in dark mode */
+        [data-theme="dark"] .weekday-buttons label {
+            background: var(--card-bg-dark);
+            border-color: var(--border-color);
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .weekday-buttons label:hover {
+            background: var(--input-bg);
+        }
+
+        /* Fix status message in dark mode */
+        [data-theme="dark"] #status-message {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Fix flatpickr in dark mode */
+        [data-theme="dark"] .flatpickr-calendar {
+            background: var(--modal-bg);
+            border-color: var(--border-color);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-months,
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-weekday,
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-day {
+            color: var(--text-color);
+            background: transparent;
+        }
+
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-day:hover {
+            background: var(--input-bg);
+        }
+
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-day.selected {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-day.prevMonthDay,
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-day.nextMonthDay {
+            color: #64748b;
+        }
+
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-current-month,
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-monthDropdown-months,
+        [data-theme="dark"] .flatpickr-calendar .numInputWrapper input {
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-monthDropdown-months,
+        [data-theme="dark"] .flatpickr-calendar .numInputWrapper input {
+            background: var(--input-bg);
+        }
+
+        /* Fix buttons in dark mode */
+        [data-theme="dark"] .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        [data-theme="dark"] .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        /* Improve transitions */
+        .modal-content,
+        .subtask-item,
+        .recurring-options,
+        .weekday-buttons label,
+        input,
+        textarea,
+        select,
+        button {
+            transition: all 0.3s ease;
+        }
+
+        /* Add these new styles for dark mode compatibility */
+        [data-theme="dark"] input,
+        [data-theme="dark"] textarea,
+        [data-theme="dark"] select {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .modal {
+            background: var(--modal-overlay);
+        }
+
+        [data-theme="dark"] .close-modal {
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .task-card .meta {
+            color: #a0aec0;
+        }
+
+        [data-theme="dark"] .delete-task-btn {
+            color: #fc8181;
+        }
+
+        [data-theme="dark"] .task-checkbox {
+            accent-color: #4f46e5;
+        }
+
+        [data-theme="dark"] .flatpickr-calendar {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-months,
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-weekday,
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-day {
+            color: var(--text-color);
+            background: var(--card-bg);
+        }
+
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-day:hover {
+            background: var(--input-bg);
+        }
+
+        [data-theme="dark"] .flatpickr-calendar .flatpickr-day.selected {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        [data-theme="dark"] .detail-subtask-item {
+            background: var(--input-bg);
+        }
+
+        [data-theme="dark"] .detail-subtask-item input[type="text"] {
+            background: transparent;
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .recurring-options {
+            background: var(--input-bg);
+        }
+
+        [data-theme="dark"] .weekday-buttons label {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .weekday-buttons label:hover {
+            background: var(--input-bg);
+        }
+
+        [data-theme="dark"] #status-message {
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .success {
+            color: #48bb78;
+        }
+
+        [data-theme="dark"] .error {
+            color: #fc8181;
+        }
+
+        /* Add smooth transitions for all color changes */
+        .modal-content,
+        input,
+        textarea,
+        select,
+        .task-card,
+        .detail-subtask-item,
+        .recurring-options,
+        .weekday-buttons label {
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        /* Fix input placeholder colors in dark mode */
+        [data-theme="dark"] input::placeholder,
+        [data-theme="dark"] textarea::placeholder {
+            color: #718096;
+        }
+
+        /* Fix flatpickr time input in dark mode */
+        [data-theme="dark"] .flatpickr-calendar input.numInput {
+            color: var(--text-color);
+            background: var(--input-bg);
+        }
+
+        .settings-modal {
+            background: var(--menu-gradient);
+        }
+
+        .settings-content select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .settings-content select:hover {
+            border-color: var(--primary-color);
+        }
+
+        .settings-content label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        /* Update the form styles in dark mode */
+        [data-theme="dark"] .form-group input,
+        [data-theme="dark"] .form-group textarea {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .form-group label {
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .subtask-item {
+            background-color: var(--input-bg);
+        }
+
+        [data-theme="dark"] .subtask-item input[type="text"] {
+            background-color: transparent;
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .modal-header h2 {
+            color: var(--text-color);
+        }
+
+        /* Fix the add task button in dark mode */
+        [data-theme="dark"] .add-task-btn {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        /* Fix the modal background in dark mode */
+        [data-theme="dark"] .modal-content {
+            background-color: var(--modal-bg);
+            border-color: var(--border-color);
+        }
+
+        /* Fix the close button in dark mode */
+        [data-theme="dark"] .close-modal {
+            color: var(--text-color);
+        }
+
+        /* Fix placeholder text in dark mode */
+        [data-theme="dark"] input::placeholder,
+        [data-theme="dark"] textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Improve button contrast in dark mode */
+        [data-theme="dark"] .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        [data-theme="dark"] .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        [data-theme="dark"] .btn-danger {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        /* Add these styles for the logout button in settings */
+        .settings-content .logout-btn {
+            margin-top: 1.5rem;
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            background: var(--danger-gradient);
+            color: white;
+            transition: opacity 0.3s;
+        }
+
+        .settings-content .logout-btn:hover {
+            opacity: 0.9;
+        }
+
+        .task-card .task-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .recurring-icon {
+            color: var(--text-color);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        [data-theme="dark"] .recurring-icon {
+            color: var(--text-color-dark);
+        }
+
+        /* Add these styles */
+        .task-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .recurring-icon {
+            color: var(--text-color);
+            opacity: 0.7;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
+
+        [data-theme="dark"] .recurring-icon {
+            color: var(--text-color-dark);
+        }
+
+        .task-header .title {
+            margin-bottom: 0;
+            margin-right: 0.5rem;
+        }
+
+        /* Add these styles */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 0.3s;
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--text-color);
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .loading-text {
+            color: var(--text-color);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Add these new styles */
+        .theme-switch {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e5e7eb;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #374151;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader"></div>
+        <div class="loading-text">Loading tasks...</div>
+    </div>
+    <div class="container">
+        <header class="header">
+            <h1>Hxdeck Task Manager</h1>
+            <nav class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="tasks.html">Tasks</a>
+                <button class="settings-btn" onclick="openSettings()">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </nav>
+        </header>
+
+        <div class="task-section">
+            <h2 class="section-title">Active Tasks</h2>
+            <div id="active-tasks" class="tasks-container">
+                <!-- Active tasks will be added here -->
+            </div>
+        </div>
+
+        <div class="task-section">
+            <h2 class="section-title">Completed Tasks</h2>
+            <div id="completed-tasks" class="tasks-container">
+                <!-- Completed tasks will be added here -->
+            </div>
+        </div>
+
+        <button class="add-task-btn" onclick="openAddTaskModal()">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- Add/Edit Task Modal -->
+    <div id="task-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New Task</h2>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="task-form" onsubmit="handleTaskSubmit(event)">
+                <div class="form-group">
+                    <label for="task-title">Title</label>
+                    <input type="text" id="task-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="task-description">Description</label>
+                    <textarea id="task-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="due-date">Due Date</label>
+                    <input type="text" id="due-date" class="flatpickr">
+                </div>
+                <div class="form-group">
+                    <label>Subtasks</label>
+                    <div id="subtasks-container" class="subtasks-list"></div>
+                    <button type="button" class="btn btn-secondary" onclick="addSubtask()">
+                        <i class="fas fa-plus"></i> Add Subtask
+                    </button>
+                </div>
+                <div class="form-group">
+                    <div class="recurring-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="is-recurring" onchange="toggleRecurringOptions()">
+                            <span class="checkbox-text">Make this task recurring</span>
+                        </label>
+                        <div id="recurring-details" style="display: none;" class="recurring-details">
+                            <div class="recurring-type">
+                                <select id="recurring-type" onchange="handleRecurringTypeChange()">
+                                    <option value="daily">Every Day</option>
+                                    <option value="weekly">Every Week</option>
+                                    <option value="monthly">Every Month</option>
+                                </select>
+                            </div>
+                            
+                            <div id="monthly-options" class="monthly-selector" style="display: none;">
+                                <select id="monthly-day"></select>
+                            </div>
+
+                            <div id="weekly-options" class="weekday-selector" style="display: none;">
+                                <div class="weekday-buttons">
+                                    <label><input type="checkbox" value="0"><span>Sun</span></label>
+                                    <label><input type="checkbox" value="1"><span>Mon</span></label>
+                                    <label><input type="checkbox" value="2"><span>Tue</span></label>
+                                    <label><input type="checkbox" value="3"><span>Wed</span></label>
+                                    <label><input type="checkbox" value="4"><span>Thu</span></label>
+                                    <label><input type="checkbox" value="5"><span>Fri</span></label>
+                                    <label><input type="checkbox" value="6"><span>Sat</span></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group button-group">
+                    <button type="submit" class="btn btn-primary">Save Task</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteTask(currentTaskId)" style="display: none" id="delete-task-btn">Delete Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add this new modal for settings -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content settings-modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-modal" onclick="closeSettingsModal()">&times;</button>
+            </div>
+            <div class="settings-content">
+                <div class="form-group">
+                    <label>Theme</label>
+                    <div class="theme-switch">
+                        <i class="fas fa-sun" style="color: #f59e0b;"></i>
+                        <label class="switch">
+                            <input type="checkbox" id="theme-select" onchange="changeTheme(this.checked ? 'dark' : 'light')">
+                            <span class="slider"></span>
+                        </label>
+                        <i class="fas fa-moon" style="color: #6b7280;"></i>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this new modal for task details -->
+    <div id="task-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Task Details</h2>
+                <button class="close-modal" onclick="closeTaskDetails()">&times;</button>
+            </div>
+            <div class="task-details-content">
+                <div class="task-main-info">
+                    <div class="task-title-section">
+                        <input type="text" id="detail-title" class="title-input">
+                        <div class="task-actions">
+                            <button class="btn btn-danger" onclick="deleteTask(currentTaskId)">Delete Task</button>
+                        </div>
+                    </div>
+                    <textarea id="detail-description" class="description-input"></textarea>
+                    <div class="date-section">
+                        <i class="far fa-calendar"></i>
+                        <input type="text" id="detail-due-date" class="flatpickr">
+                    </div>
+                </div>
+
+                <div class="recurring-section">
+                    <div class="recurring-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="detail-is-recurring" onchange="toggleDetailRecurringOptions()">
+                            <span class="checkbox-text">Make this task recurring</span>
+                        </label>
+                        <div id="detail-recurring-details" class="recurring-details" style="display: none;">
+                            <div class="recurring-type">
+                                <select id="detail-recurring-type" onchange="handleDetailRecurringTypeChange()">
+                                    <option value="daily">Every Day</option>
+                                    <option value="weekly">Every Week</option>
+                                    <option value="monthly">Every Month</option>
+                                </select>
+                            </div>
+                            
+                            <div id="detail-monthly-options" class="monthly-selector" style="display: none;">
+                                <select id="detail-monthly-day"></select>
+                            </div>
+
+                            <div id="detail-weekly-options" class="weekday-selector" style="display: none;">
+                                <div class="weekday-buttons">
+                                    <label><input type="checkbox" value="0"><span>Sun</span></label>
+                                    <label><input type="checkbox" value="1"><span>Mon</span></label>
+                                    <label><input type="checkbox" value="2"><span>Tue</span></label>
+                                    <label><input type="checkbox" value="3"><span>Wed</span></label>
+                                    <label><input type="checkbox" value="4"><span>Thu</span></label>
+                                    <label><input type="checkbox" value="5"><span>Fri</span></label>
+                                    <label><input type="checkbox" value="6"><span>Sat</span></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subtasks-section">
+                    <h3>Subtasks</h3>
+                    <div id="detail-subtasks" class="subtasks-list">
+                        <!-- Subtasks will be added here -->
+                    </div>
+                    <button class="btn btn-secondary" onclick="addSubtaskInDetails()">
+                        <i class="fas fa-plus"></i> Add Subtask
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-message"></div>
+
+    <script>
+        // Initialize Appwrite
+        const client = new Appwrite.Client()
+            .setEndpoint('https://cloud.appwrite.io/v1')
+            .setProject('6786fe750018c76b54f3');
+
+        const account = new Appwrite.Account(client);
+        const databases = new Appwrite.Databases(client);
+        const functions = new Appwrite.Functions(client);
+
+        const databaseId = 'ideas-tracker';
+        const collectionId = 'ideas-tracker';
+
+        let currentUser = null;
+        let currentTaskId = null;
+        let flatpickrInstance;
+        let detailsFlatpickr;
+
+        // Initialize date picker
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the main flatpickr
+            flatpickrInstance = flatpickr("#due-date", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true
+            });
+
+            // Initialize the details flatpickr
+            detailsFlatpickr = flatpickr("#detail-due-date", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true
+            });
+
+            // Generate monthly days on load
+            generateMonthlyDays();
+        });
+
+        async function checkAuth() {
+            try {
+                currentUser = await account.get();
+                if (!currentUser) {
+                    throw new Error('No user found');
+                }
+                console.log('User authenticated:', currentUser);
+                await handleRecurringTasks();
+                loadTasks();
+            } catch (error) {
+                console.error('Authentication error:', error);
+                if (error.code === 401) {
+                    window.location.href = 'index.html';
+                } else {
+                    showMessage('Error checking authentication: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function openAddTaskModal() {
+            document.getElementById('task-modal').style.display = 'block';
+            document.getElementById('modal-title').textContent = 'Add New Task';
+            document.getElementById('task-form').reset();
+            currentTaskId = null;
+            
+            // Clear the flatpickr date
+            if (flatpickrInstance) {
+                flatpickrInstance.clear();
+            }
+            
+            resetSubtasks();
+            generateMonthlyDays();
+        }
+
+        function closeModal() {
+            document.getElementById('task-modal').style.display = 'none';
+        }
+
+        function resetSubtasks() {
+            const container = document.getElementById('subtasks-container');
+            container.innerHTML = '';
+            addSubtask(); // Add one empty subtask by default
+        }
+
+        function addSubtask(value = '') {
+            const container = document.getElementById('subtasks-container');
+            const subtaskDiv = document.createElement('div');
+            subtaskDiv.className = 'subtask-item';
+            subtaskDiv.innerHTML = `
+                <input type="checkbox" ${value.completed ? 'checked' : ''}>
+                <input type="text" value="${value.text || ''}" placeholder="Enter subtask">
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(subtaskDiv);
+        }
+
+        async function handleTaskSubmit(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('task-title').value;
+            const description = document.getElementById('task-description').value;
+            const dueDate = document.getElementById('due-date').value;
+            const isRecurring = document.getElementById('is-recurring').checked;
+            const recurringType = isRecurring ? [document.getElementById('recurring-type').value] : [];
+            
+            // Get monthly day if monthly is selected
+            const monthlyDay = (isRecurring && document.getElementById('recurring-type').value === 'monthly') 
+                ? parseInt(document.getElementById('monthly-day').value)
+                : null;
+            
+            // Get weekdays if weekly is selected
+            const recurringWeekDays = (isRecurring && document.getElementById('recurring-type').value === 'weekly')
+                ? Array.from(document.querySelectorAll('.weekday-buttons input:checked'))
+                    .map(cb => cb.value)
+                : [];
+
+            const taskData = {
+                userId: currentUser.$id,
+                title: title,
+                description: description || '',
+                dueDate: dueDate ? new Date(dueDate) : null,
+                subtasks: Array.from(document.querySelectorAll('.subtask-item'))
+                    .map(item => {
+                        const text = item.querySelector('input[type="text"]').value.trim();
+                        const completed = item.querySelector('input[type="checkbox"]').checked;
+                        return text ? `${text}|${completed}` : null;
+                    })
+                    .filter(Boolean),
+                completed: false,
+                createdAt: new Date(),
+                isRecurring: isRecurring,
+                recurringType: recurringType,
+                recurringWeekDays: recurringWeekDays,
+                monthlyDay: monthlyDay
+            };
+
+            try {
+                if (currentTaskId) {
+                    await databases.updateDocument(
+                        databaseId,
+                        collectionId,
+                        currentTaskId,
+                        taskData
+                    );
+                    showMessage('Task updated successfully!', 'success');
+                } else {
+                    await databases.createDocument(
+                        databaseId,
+                        collectionId,
+                        Appwrite.ID.unique(),
+                        taskData
+                    );
+                    showMessage('Task added successfully!', 'success');
+                }
+                closeModal();
+                loadTasks();
+            } catch (error) {
+                console.error('Error details:', error);
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const taskDate = new Date(date);
+            const diffTime = Math.abs(taskDate - now);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 1) return 'in 1 day';
+            if (diffDays < 30) return `in ${diffDays} days`;
+            if (diffDays < 365) return `in ${Math.ceil(diffDays/30)} months`;
+            return `in ${Math.ceil(diffDays/365)} years`;
+        }
+
+        // Update loadTasks to only show loading on initial load
+        let isInitialLoad = true;
+
+        async function loadTasks() {
+            if (isInitialLoad) {
+                showLoading();
+            }
+            try {
+                const execution = await functions.createExecution(
+                    '678c504c002d388d77df',
+                    '', 
+                    false
+                );
+                console.log('Function response:', execution);
+
+                const response = await databases.listDocuments(databaseId, collectionId, [
+                    Appwrite.Query.equal('userId', currentUser.$id)
+                ]);
+
+                const activeTasks = document.getElementById('active-tasks');
+                const completedTasks = document.getElementById('completed-tasks');
+                activeTasks.innerHTML = '';
+                completedTasks.innerHTML = '';
+
+                response.documents.forEach(task => {
+                    const taskElement = createTaskCard(task);
+                    if (task.completed) {
+                        completedTasks.appendChild(taskElement);
+                    } else {
+                        activeTasks.appendChild(taskElement);
+                    }
+                });
+            } catch (error) {
+                console.error('Function error:', error);
+                if (error.code === 401) {
+                    redirectToLogin();
+                } else {
+                    showMessage('Error loading tasks: ' + error.message, 'error');
+                }
+            } finally {
+                if (isInitialLoad) {
+                    hideLoading();
+                    isInitialLoad = false;
+                }
+            }
+        }
+
+        function createTaskCard(task) {
+            const taskElement = document.createElement('div');
+            taskElement.className = 'task-card';
+            
+            const completedSubtasks = task.subtasks?.filter(st => st.completed).length || 0;
+            const totalSubtasks = task.subtasks?.length || 0;
+            
+            taskElement.innerHTML = `
+                <div class="task-content ${task.completed ? 'completed-task' : ''}" onclick="openTaskDetails('${task.$id}')">
+                    <div class="title">${task.title}</div>
+                    <div class="meta">
+                        <span class="due-date">
+                            <i class="${task.isRecurring ? 'fas fa-sync-alt' : 'far fa-calendar'}"></i>
+                            ${task.dueDate ? formatTimeAgo(task.dueDate) : 'No due date'}
+                        </span>
+                        ${totalSubtasks > 0 ? `
+                            <span class="subtasks">
+                                <i class="far fa-check-square"></i>
+                                ${completedSubtasks}/${totalSubtasks}
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <input type="checkbox" 
+                        class="task-checkbox" 
+                        ${task.completed ? 'checked' : ''} 
+                        onclick="event.stopPropagation(); toggleTaskComplete('${task.$id}', ${!task.completed})"
+                    >
+                    <button class="delete-task-btn" onclick="event.stopPropagation(); deleteTask('${task.$id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            return taskElement;
+        }
+
+        async function openTaskDetails(taskId) {
+            try {
+                const task = await databases.getDocument(databaseId, collectionId, taskId);
+                currentTaskId = taskId;
+                
+                if (!window.detailsFlatpickr) {
+                    window.detailsFlatpickr = flatpickr("#detail-due-date", {
+                        enableTime: true,
+                        dateFormat: "Y-m-d H:i",
+                        time_24hr: true,
+                        minDate: 'today'
+                    });
+                }
+
+                // Populate task details
+                document.getElementById('detail-title').value = task.title;
+                document.getElementById('detail-description').value = task.description || '';
+                
+                if (task.dueDate) {
+                    window.detailsFlatpickr.setDate(task.dueDate);
+                } else {
+                    window.detailsFlatpickr.clear();
+                }
+
+                // Populate recurring options
+                document.getElementById('detail-is-recurring').checked = task.isRecurring;
+                if (task.isRecurring) {
+                    document.getElementById('detail-recurring-details').style.display = 'block';
+                    document.getElementById('detail-recurring-type').value = task.recurringType?.[0] || 'daily';
+                    
+                    // Handle weekly options
+                    if (task.recurringType?.[0] === 'weekly') {
+                        document.getElementById('detail-weekly-options').style.display = 'block';
+                        document.querySelectorAll('#detail-weekly-options input[type="checkbox"]').forEach(cb => {
+                            cb.checked = task.recurringWeekDays?.includes(cb.value) || false;
+                        });
+                    }
+                    
+                    // Handle monthly options
+                    if (task.recurringType?.[0] === 'monthly') {
+                        document.getElementById('detail-monthly-options').style.display = 'block';
+                        document.getElementById('detail-monthly-day').value = task.monthlyDay || 1;
+                    }
+                }
+
+                // Generate monthly days for the details modal
+                generateMonthlyDays('detail-monthly-day');
+
+                // Populate subtasks
+                const subtasksList = document.getElementById('detail-subtasks');
+                subtasksList.innerHTML = '';
+                if (task.subtasks?.length) {
+                    task.subtasks.forEach((subtask, index) => {
+                        addSubtaskToDetails(subtask, index);
+                    });
+                }
+
+                document.getElementById('task-details-modal').style.display = 'block';
+                addTaskDetailsListeners();
+            } catch (error) {
+                showMessage('Error loading task details: ' + error.message, 'error');
+            }
+        }
+
+        function addSubtaskToDetails(subtaskString = '', index) {
+            const container = document.getElementById('detail-subtasks');
+            const [text = '', completed = false] = subtaskString.split('|');
+            const subtaskDiv = document.createElement('div');
+            subtaskDiv.className = 'detail-subtask-item';
+            subtaskDiv.innerHTML = `
+                <input type="checkbox" ${completed === 'true' ? 'checked' : ''}>
+                <input type="text" value="${text}" placeholder="Enter subtask">
+                <button class="btn btn-danger">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+
+            // Add event listeners directly
+            const checkbox = subtaskDiv.querySelector('input[type="checkbox"]');
+            const textInput = subtaskDiv.querySelector('input[type="text"]');
+            const deleteBtn = subtaskDiv.querySelector('.btn-danger');
+
+            checkbox.addEventListener('change', () => saveTaskChanges());
+            textInput.addEventListener('input', debounce(() => saveTaskChanges(), 500));
+            deleteBtn.addEventListener('click', () => {
+                subtaskDiv.remove();
+                saveTaskChanges();
+            });
+
+            container.appendChild(subtaskDiv);
+        }
+
+        function updateSubtask(index, completed = null, text = null) {
+            const task = currentTask;
+            if (!task.subtasks) task.subtasks = [];
+            
+            if (completed !== null) {
+                task.subtasks[index].completed = completed;
+            }
+            if (text !== null) {
+                task.subtasks[index].text = text;
+            }
+            
+            saveTaskChanges();
+        }
+
+        function removeSubtask(index) {
+            const task = currentTask;
+            task.subtasks.splice(index, 1);
+            saveTaskChanges();
+        }
+
+        async function saveTaskChanges() {
+            const isRecurring = document.getElementById('detail-is-recurring').checked;
+            const recurringType = isRecurring ? [document.getElementById('detail-recurring-type').value] : [];
+            
+            // Get monthly day if monthly is selected
+            const monthlyDay = (isRecurring && document.getElementById('detail-recurring-type').value === 'monthly') 
+                ? parseInt(document.getElementById('detail-monthly-day').value)
+                : null;
+            
+            // Get weekdays if weekly is selected
+            const recurringWeekDays = (isRecurring && document.getElementById('detail-recurring-type').value === 'weekly')
+                ? Array.from(document.querySelectorAll('#detail-weekly-options input:checked'))
+                    .map(cb => cb.value)
+                : [];
+
+            const taskData = {
+                title: document.getElementById('detail-title').value,
+                description: document.getElementById('detail-description').value,
+                dueDate: window.detailsFlatpickr.selectedDates[0] || null,
+                subtasks: Array.from(document.querySelectorAll('#detail-subtasks .detail-subtask-item'))
+                    .map(item => {
+                        const text = item.querySelector('input[type="text"]').value.trim();
+                        const completed = item.querySelector('input[type="checkbox"]').checked;
+                        return text ? `${text}|${completed}` : null;
+                    })
+                    .filter(Boolean),
+                isRecurring: isRecurring,
+                recurringType: recurringType,
+                recurringWeekDays: recurringWeekDays,
+                monthlyDay: monthlyDay
+            };
+
+            try {
+                await databases.updateDocument(databaseId, collectionId, currentTaskId, taskData);
+                await loadTasks(); // Refresh the task list
+            } catch (error) {
+                showMessage('Error updating task: ' + error.message, 'error');
+            }
+        }
+
+        async function toggleTaskComplete(taskId, completed) {
+            try {
+                event.preventDefault();
+                event.stopPropagation();
+                await databases.updateDocument(databaseId, collectionId, taskId, { completed });
+                showMessage(`Task marked as ${completed ? 'completed' : 'active'}!`, 'success');
+                loadTasks();
+            } catch (error) {
+                if (error.code === 401) {
+                    redirectToLogin();
+                } else {
+                    showMessage('Error updating task: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function deleteTask(taskId) {
+            try {
+                event?.preventDefault();
+                event?.stopPropagation();
+                
+                await databases.deleteDocument(databaseId, collectionId, taskId);
+                showMessage('Task deleted successfully!', 'success');
+                closeModal();
+                closeTaskDetails();
+                loadTasks();
+            } catch (error) {
+                if (error.code === 401) {
+                    redirectToLogin();
+                } else {
+                    showMessage('Error deleting task: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function showMessage(message, type) {
+            const statusElement = document.getElementById('status-message');
+            statusElement.innerHTML = message;
+            statusElement.className = type;
+            statusElement.style.display = 'block';
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 3000);
+        }
+
+        function openSettings() {
+            document.getElementById('settings-modal').style.display = 'block';
+            // Load saved settings
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            document.getElementById('theme-select').checked = savedTheme === 'dark';
+            const savedView = localStorage.getItem('defaultView') || 'all';
+            document.getElementById('default-view').value = savedView;
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        function toggleRecurringOptions() {
+            const isRecurring = document.getElementById('is-recurring').checked;
+            const recurringDetails = document.getElementById('recurring-details');
+            recurringDetails.style.display = isRecurring ? 'block' : 'none';
+        }
+
+        document.getElementById('recurring-type').addEventListener('change', function(e) {
+            const weeklyOptions = document.getElementById('weekly-options');
+            const monthlyOptions = document.getElementById('monthly-options');
+            
+            weeklyOptions.style.display = e.target.value === 'weekly' ? 'block' : 'none';
+            monthlyOptions.style.display = e.target.value === 'monthly' ? 'block' : 'none';
+
+            if (e.target.value === 'monthly') {
+                handleMonthlyDayChange();
+            } else if (e.target.value === 'weekly') {
+                const selectedWeekdays = Array.from(document.querySelectorAll('#weekly-options input:checked'))
+                    .map(cb => parseInt(cb.value));
+                if (selectedWeekdays.length > 0) {
+                    const today = new Date();
+                    const currentDay = today.getDay();
+                    const nextDay = selectedWeekdays.find(day => day >= currentDay) || selectedWeekdays[0];
+                    const daysToAdd = nextDay >= currentDay ? nextDay - currentDay : 7 - currentDay + nextDay;
+                    const nextDate = new Date(today);
+                    nextDate.setDate(today.getDate() + daysToAdd);
+                    
+                    if (window.detailsFlatpickr) {
+                        window.detailsFlatpickr.setDate(nextDate);
+                    }
+                }
+            }
+        });
+
+        // Add function to handle recurring tasks
+        async function handleRecurringTasks() {
+            const response = await databases.listDocuments(databaseId, collectionId, [
+                Appwrite.Query.equal('userId', currentUser.$id),
+                Appwrite.Query.equal('isRecurring', true)
+            ]);
+
+            for (const task of response.documents) {
+                if (!task.isRecurring) continue;
+
+                const today = new Date();
+                const dueDate = new Date(task.dueDate);
+                let shouldCreateNew = false;
+                let nextDueDate = new Date(dueDate);
+
+                switch (task.recurringType[0]) {
+                    case 'daily':
+                        if (dueDate < today) {
+                            // Find next due date after today
+                            while (nextDueDate < today) {
+                                nextDueDate.setDate(nextDueDate.getDate() + 1);
+                            }
+                            shouldCreateNew = true;
+                        }
+                        break;
+
+                    case 'weekly':
+                        if (dueDate < today && task.recurringWeekDays?.length) {
+                            // Find the next occurrence after today
+                            let found = false;
+                            while (!found && nextDueDate <= today) {
+                                nextDueDate.setDate(nextDueDate.getDate() + 1);
+                                if (task.recurringWeekDays.includes(nextDueDate.getDay().toString())) {
+                                    found = true;
+                                    shouldCreateNew = true;
+                                }
+                            }
+                        }
+                        break;
+
+                    case 'monthly':
+                        if (dueDate < today && task.monthlyDay) {
+                            // Find next monthly occurrence
+                            while (nextDueDate <= today) {
+                                nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+                                nextDueDate.setDate(task.monthlyDay);
+                            }
+                            shouldCreateNew = true;
+                        }
+                        break;
+                }
+
+                if (shouldCreateNew) {
+                    // Create next occurrence and mark current as completed
+                    await createRecurringTask(task, nextDueDate);
+                    await databases.updateDocument(databaseId, collectionId, task.$id, {
+                        completed: true
+                    });
+                }
+            }
+        }
+
+        async function createRecurringTask(originalTask, nextDueDate) {
+            const newTaskData = {
+                userId: originalTask.userId,
+                title: originalTask.title,
+                description: originalTask.description,
+                dueDate: nextDueDate,
+                completed: false,
+                createdAt: new Date(),
+                isRecurring: originalTask.isRecurring,
+                recurringType: originalTask.recurringType,
+                recurringWeekDays: originalTask.recurringWeekDays
+            };
+
+            await databases.createDocument(
+                databaseId,
+                collectionId,
+                Appwrite.ID.unique(),
+                newTaskData
+            );
+        }
+
+        // Initialize the page
+        window.onload = function() {
+            checkAuth();
+            initializeTheme();
+        };
+
+        // Add this function to check session before redirecting
+        function redirectToLogin() {
+            localStorage.removeItem('sessionActive');
+            window.location.href = 'index.html';
+        }
+
+        // Add event listener to handle clicks
+        document.addEventListener('click', async function(event) {
+            // Prevent default only for specific buttons
+            if (event.target.matches('.task-checkbox') || 
+                event.target.matches('.delete-task-btn') || 
+                event.target.matches('.restore-btn')) {
+                event.preventDefault();
+            }
+        });
+
+        // Update the logout function
+        async function logout() {
+            try {
+                await account.deleteSession('current');
+                window.location.href = 'index.html'; // Redirect to login page
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        function handleRecurringTypeChange() {
+            const type = document.getElementById('recurring-type').value;
+            const weeklyOptions = document.getElementById('weekly-options');
+            const monthlyOptions = document.getElementById('monthly-options');
+            
+            weeklyOptions.style.display = type === 'weekly' ? 'block' : 'none';
+            monthlyOptions.style.display = type === 'monthly' ? 'block' : 'none';
+
+            if (type === 'monthly') {
+                handleMonthlyDayChange();
+            } else if (type === 'weekly') {
+                const selectedWeekdays = Array.from(document.querySelectorAll('#weekly-options input:checked'))
+                    .map(cb => parseInt(cb.value));
+                if (selectedWeekdays.length > 0) {
+                    const today = new Date();
+                    const currentDay = today.getDay();
+                    const nextDay = selectedWeekdays.find(day => day >= currentDay) || selectedWeekdays[0];
+                    const daysToAdd = nextDay >= currentDay ? nextDay - currentDay : 7 - currentDay + nextDay;
+                    const nextDate = new Date(today);
+                    nextDate.setDate(today.getDate() + daysToAdd);
+                    
+                    if (window.detailsFlatpickr) {
+                        window.detailsFlatpickr.setDate(nextDate);
+                    }
+                }
+            }
+        }
+
+        function getDaySuffix(day) {
+            if (day >= 11 && day <= 13) return 'th';
+            switch (day % 10) {
+                case 1: return 'st';
+                case 2: return 'nd';
+                case 3: return 'rd';
+                default: return 'th';
+            }
+        }
+
+        // Add this function to generate monthly days
+        function generateMonthlyDays(elementId = 'monthly-day') {
+            const monthlySelect = document.getElementById(elementId);
+            if (!monthlySelect) return;
+            
+            monthlySelect.innerHTML = '';
+            for (let i = 1; i <= 31; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `${i}${getDaySuffix(i)}`;
+                monthlySelect.appendChild(option);
+            }
+        }
+
+        // Add function to close task details modal
+        function closeTaskDetails() {
+            document.getElementById('task-details-modal').style.display = 'none';
+        }
+
+        function addTaskDetailsListeners() {
+            // Auto-save title changes
+            document.getElementById('detail-title').addEventListener('input', debounce(() => saveTaskChanges(), 500));
+
+            // Auto-save description changes
+            document.getElementById('detail-description').addEventListener('input', debounce(() => saveTaskChanges(), 500));
+
+            // Auto-save date changes
+            if (window.detailsFlatpickr) {
+                window.detailsFlatpickr.config.onChange = [() => saveTaskChanges()];
+            }
+
+            // Add listeners for recurring options
+            document.getElementById('detail-recurring-type').addEventListener('change', handleDetailRecurringTypeChange);
+            
+            // Add listeners for weekly checkboxes
+            document.querySelectorAll('#detail-weekly-options input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', () => saveTaskChanges());
+            });
+            
+            // Add listener for monthly day select
+            document.getElementById('detail-monthly-day').addEventListener('change', () => saveTaskChanges());
+        }
+
+        // Add debounce function to prevent too many saves
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function toggleDetailRecurringOptions() {
+            const isRecurring = document.getElementById('detail-is-recurring').checked;
+            const recurringDetails = document.getElementById('detail-recurring-details');
+            recurringDetails.style.display = isRecurring ? 'block' : 'none';
+            saveTaskChanges();
+        }
+
+        function handleDetailRecurringTypeChange() {
+            const type = document.getElementById('detail-recurring-type').value;
+            document.getElementById('detail-weekly-options').style.display = type === 'weekly' ? 'block' : 'none';
+            document.getElementById('detail-monthly-options').style.display = type === 'monthly' ? 'block' : 'none';
+            saveTaskChanges();
+        }
+
+        function addSubtaskInDetails() {
+            const container = document.getElementById('detail-subtasks');
+            const subtaskDiv = document.createElement('div');
+            subtaskDiv.className = 'detail-subtask-item';
+            subtaskDiv.innerHTML = `
+                <input type="checkbox">
+                <input type="text" placeholder="Enter subtask">
+                <button class="btn btn-danger">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+
+            // Add event listeners directly
+            const checkbox = subtaskDiv.querySelector('input[type="checkbox"]');
+            const textInput = subtaskDiv.querySelector('input[type="text"]');
+            const deleteBtn = subtaskDiv.querySelector('.btn-danger');
+
+            checkbox.addEventListener('change', () => saveTaskChanges());
+            textInput.addEventListener('input', debounce(() => saveTaskChanges(), 500));
+            deleteBtn.addEventListener('click', () => {
+                subtaskDiv.remove();
+                saveTaskChanges();
+            });
+
+            container.appendChild(subtaskDiv);
+            textInput.focus(); // Focus the new input
+        }
+
+        // Add these functions for theme management
+        function initializeTheme() {
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                document.getElementById('theme-select').checked = savedTheme === 'dark';
+            } else {
+                // Check system preference
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    document.getElementById('theme-select').checked = true;
+                }
+            }
+
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (document.getElementById('theme-select').checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+            });
+        }
+
+        function changeTheme(value) {
+            if (value === 'system') {
+                // Use system preference
+                const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', value);
+            }
+            localStorage.setItem('theme', value);
+        }
+
+        // Update the handleMonthlyDayChange function
+        function handleMonthlyDayChange() {
+            const monthlyDay = parseInt(document.getElementById('monthly-day').value);
+            const today = new Date();
+            const newDate = new Date();
+            
+            // Set the date to the selected monthly day
+            newDate.setDate(monthlyDay);
+            
+            // If the new date would be before today, move to next month
+            if (newDate < today) {
+                newDate.setMonth(newDate.getMonth() + 1);
+            }
+            
+            // Update both date pickers if they exist
+            if (window.detailsFlatpickr) {
+                window.detailsFlatpickr.setDate(newDate);
+            }
+        }
+
+        // Add these functions
+        function showLoading() {
+            document.getElementById('loading-screen').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            const loader = document.getElementById('loading-screen');
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                loader.style.opacity = '1';
+            }, 300);
+        }
+    </script>
+</body>
+</html> 
