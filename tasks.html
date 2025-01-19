@@ -135,6 +135,7 @@
             font-weight: 600;
         }
 
+        /* Update task card styles */
         .task-card {
             background: var(--card-bg);
             border-radius: 0.75rem;
@@ -145,6 +146,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            overflow: hidden;
         }
 
         .task-card:hover {
@@ -153,16 +156,37 @@
         }
 
         .task-card.completed {
-            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            background: linear-gradient(135deg, #34d399 0%, #059669 100%);
             color: white;
             border: none;
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-            transition: all 0.3s;
         }
 
         .task-card.completed:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
             box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+        }
+
+        .task-card.completed::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                45deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                transparent 100%
+            );
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+            pointer-events: none;
+        }
+
+        .task-card.completed:hover::before {
+            transform: translateX(100%);
         }
 
         .task-card.completed .task-content,
@@ -175,12 +199,17 @@
         }
 
         .task-card.completed .task-checkbox {
-            border-color: rgba(255, 255, 255, 0.8);
+            background-color: white;
+            border-color: white;
         }
 
         .task-card.completed .task-checkbox:checked {
-            background: white;
-            color: #10b981;
+            background-color: white;
+        }
+
+        .task-card.completed .task-checkbox:checked::after {
+            color: #059669;
+            font-weight: bold;
         }
 
         .task-card.completed .delete-task-btn {
@@ -189,6 +218,40 @@
 
         .task-card.completed .delete-task-btn:hover {
             color: white;
+        }
+
+        .task-card .task-content {
+            flex: 1;
+            transition: all 0.3s;
+        }
+
+        .task-card.completed .task-content {
+            text-decoration: line-through;
+            opacity: 0.9;
+        }
+
+        /* Add gradient animation for completed cards */
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .task-card.completed {
+            background: linear-gradient(
+                135deg,
+                #34d399 0%,
+                #059669 50%,
+                #34d399 100%
+            );
+            background-size: 200% 200%;
+            animation: gradientShift 3s ease infinite;
         }
 
         .task-card .title {
@@ -326,17 +389,34 @@
         }
 
         .task-checkbox {
-            width: 1.25rem;
-            height: 1.25rem;
-            border-radius: 50%;
-            border: 2px solid var(--border-color);
+            width: 20px;
+            height: 20px;
+            margin: 0;
             cursor: pointer;
-            transition: background-color 0.3s;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: var(--card-bg);
+            position: relative;
+            vertical-align: middle;
+            transition: all 0.2s ease;
         }
 
         .task-checkbox:checked {
-            background: var(--primary-gradient);
-            border-color: transparent;
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .task-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
         }
 
         .delete-task-btn {
@@ -601,28 +681,104 @@
         .detail-subtask-item {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            background: var(--bg-color);
-            border-radius: var(--border-radius);
+            gap: 0.75rem;
             margin-bottom: 0.5rem;
+            background: var(--menu-gradient);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .detail-subtask-item:hover {
+            transform: translateX(4px);
+        }
+
+        .detail-subtask-item.completed {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
         }
 
         .detail-subtask-item input[type="checkbox"] {
             width: 18px;
             height: 18px;
+            margin: 0;
+            cursor: pointer;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: var(--card-bg);
+            position: relative;
+            vertical-align: middle;
+            transition: all 0.2s ease;
+        }
+
+        .detail-subtask-item input[type="checkbox"]:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .detail-subtask-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
         }
 
         .detail-subtask-item input[type="text"] {
             flex: 1;
+            padding: 0.25rem 0.5rem;
             border: none;
             background: transparent;
-            padding: 0.25rem;
+            color: var(--text-color);
+            font-size: 1rem;
         }
 
         .detail-subtask-item input[type="text"]:focus {
             outline: none;
-            border-bottom: 1px solid var(--primary-color);
+        }
+
+        .detail-subtask-item .btn-danger {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 0.5rem;
+            opacity: 0.8;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-subtask-item .btn-danger:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .detail-subtask-item.completed input[type="checkbox"],
+        .detail-subtask-item.completed input[type="text"],
+        .detail-subtask-item.completed .btn-danger {
+            color: white;
+        }
+
+        /* Dark mode adjustments */
+        [data-theme="dark"] .detail-subtask-item {
+            background: var(--input-bg);
+        }
+
+        [data-theme="dark"] .detail-subtask-item input[type="text"] {
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .detail-subtask-item .btn-danger {
+            color: #fc8181;
         }
 
         .recurring-info {
@@ -1103,6 +1259,289 @@
         input:checked + .slider:before {
             transform: translateX(24px);
         }
+
+        /* Add CSS for disabled calendar */
+        .flatpickr-calendar.disabled {
+            pointer-events: none !important;
+            background: var(--bg-color) !important;
+            opacity: 0.6 !important;
+        }
+        
+        .flatpickr-calendar.disabled .flatpickr-days,
+        .flatpickr-calendar.disabled .flatpickr-months,
+        .flatpickr-calendar.disabled .flatpickr-time {
+            pointer-events: none !important;
+            opacity: 0.6 !important;
+            background: var(--bg-color) !important;
+        }
+
+        .flatpickr-calendar.disabled .flatpickr-day {
+            color: #999 !important;
+            cursor: not-allowed !important;
+        }
+
+        .flatpickr-calendar.disabled .flatpickr-day.selected {
+            background: rgba(0, 0, 0, 0.1) !important;
+            border-color: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Update settings modal styles */
+        .settings-modal {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .settings-modal h2 {
+            color: var(--text-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .settings-content {
+            padding: 1.5rem 0;
+        }
+
+        .settings-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        #theme-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+            background-size: 1em;
+            padding-right: 2.5rem;
+            transition: all 0.3s ease;
+        }
+
+        #theme-select:hover {
+            border-color: var(--primary-color);
+        }
+
+        #theme-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Fix checkbox styles in create menu */
+        .subtask-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            appearance: none;
+            background-color: var(--card-bg);
+            position: relative;
+            vertical-align: middle;
+            transition: all 0.2s ease;
+        }
+
+        .subtask-item input[type="checkbox"]:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .subtask-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Add logout button styles */
+        .settings-content .logout-btn {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            background: var(--danger-gradient);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .settings-content .logout-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2);
+        }
+
+        .settings-content .logout-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Add animation for settings modal */
+        .settings-modal {
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -48%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        /* Add confetti styles */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #fff;
+            opacity: 0;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100%) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes confetti-shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-5px);
+            }
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .confetti.active {
+            animation: confetti-fall 3s linear forwards, confetti-shake 2s ease-in-out infinite;
+        }
+
+        /* Add success animation for task completion */
+        @keyframes success-pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .task-card.completed {
+            animation: success-pulse 0.5s ease-in-out;
+        }
+
+        /* Add this CSS for the fade out animation */
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+
+        /* Add styles for time-only mode */
+        .flatpickr-calendar.time-only .flatpickr-days,
+        .flatpickr-calendar.time-only .flatpickr-months,
+        .flatpickr-calendar.time-only .flatpickr-weekdays {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .flatpickr-calendar.time-only .flatpickr-time {
+            border-top: none;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .flatpickr-calendar.time-only .numInputWrapper {
+            pointer-events: auto;
+            opacity: 1;
+        }
+
+        .flatpickr-calendar.time-only .flatpickr-time input,
+        .flatpickr-calendar.time-only .flatpickr-time .flatpickr-am-pm {
+            pointer-events: auto;
+            opacity: 1;
+            color: var(--text-color);
+        }
+
+        /* Add styles for time-only picker */
+        .time-only-picker {
+            width: auto !important;
+            min-width: 150px !important;
+        }
+
+        .time-only-picker .flatpickr-time {
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            margin: 0;
+            background: var(--card-bg);
+        }
+
+        .time-only-picker input.flatpickr-hour,
+        .time-only-picker input.flatpickr-minute {
+            color: var(--text-color);
+            background: transparent;
+        }
+
+        .time-only-picker .flatpickr-time .flatpickr-time-separator {
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .time-only-picker .flatpickr-time {
+            background: var(--input-bg);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .time-only-picker input.flatpickr-hour,
+        [data-theme="dark"] .time-only-picker input.flatpickr-minute {
+            color: var(--text-color);
+        }
     </style>
 </head>
 <body>
@@ -1110,6 +1549,7 @@
         <div class="loader"></div>
         <div class="loading-text">Loading tasks...</div>
     </div>
+    <div class="confetti-container" id="confetti-container"></div>
     <div class="container">
         <header class="header">
             <h1>Hxdeck Task Manager</h1>
@@ -1217,18 +1657,17 @@
                 <button class="close-modal" onclick="closeSettingsModal()">&times;</button>
             </div>
             <div class="settings-content">
-                <div class="form-group">
-                    <label>Theme</label>
-                    <div class="theme-switch">
-                        <i class="fas fa-sun" style="color: #f59e0b;"></i>
-                        <label class="switch">
-                            <input type="checkbox" id="theme-select" onchange="changeTheme(this.checked ? 'dark' : 'light')">
-                            <span class="slider"></span>
-                        </label>
-                        <i class="fas fa-moon" style="color: #6b7280;"></i>
-                    </div>
+                <div class="settings-group">
+                    <label for="theme-select">Theme</label>
+                    <select id="theme-select" onchange="changeTheme(this.value)">
+                        <option value="system">Device Default</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
                 </div>
-                <button class="logout-btn" onclick="logout()">Logout</button>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
             </div>
         </div>
     </div>
@@ -1324,22 +1763,17 @@
 
         // Initialize date picker
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize the main flatpickr
-            flatpickrInstance = flatpickr("#due-date", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i",
-                time_24hr: true
-            });
-
-            // Initialize the details flatpickr
-            detailsFlatpickr = flatpickr("#detail-due-date", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i",
-                time_24hr: true
-            });
+            // Initialize the add task date picker
+            window.addTaskFlatpickr = initializeDatePicker("due-date", new Date());
+            
+            // Initialize the details date picker
+            window.detailsFlatpickr = initializeDatePicker("detail-due-date");
 
             // Generate monthly days on load
             generateMonthlyDays();
+            
+            // Check authentication
+            checkAuth();
         });
 
         async function checkAuth() {
@@ -1367,9 +1801,17 @@
             document.getElementById('task-form').reset();
             currentTaskId = null;
             
-            // Clear the flatpickr date
-            if (flatpickrInstance) {
-                flatpickrInstance.clear();
+            // Initialize flatpickr if it doesn't exist
+            if (!window.addTaskFlatpickr) {
+                window.addTaskFlatpickr = flatpickr("#due-date", {
+                    enableTime: true,
+                    dateFormat: "Y-m-d H:i",
+                    time_24hr: true,
+                    minDate: 'today',
+                    defaultDate: new Date()
+                });
+            } else {
+                window.addTaskFlatpickr.clear();
             }
             
             resetSubtasks();
@@ -1393,11 +1835,25 @@
             subtaskDiv.innerHTML = `
                 <input type="checkbox" ${value.completed ? 'checked' : ''}>
                 <input type="text" value="${value.text || ''}" placeholder="Enter subtask">
-                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">
+                <button type="button" class="btn btn-danger" onclick="removeSubtask(this)">
                     <i class="fas fa-trash"></i>
                 </button>
             `;
+
+            // Add event listener for checkbox
+            const checkbox = subtaskDiv.querySelector('input[type="checkbox"]');
+            checkbox.addEventListener('change', () => {
+                subtaskDiv.classList.toggle('completed', checkbox.checked);
+            });
+
             container.appendChild(subtaskDiv);
+            subtaskDiv.querySelector('input[type="text"]').focus();
+        }
+
+        function removeSubtask(button) {
+            const subtaskDiv = button.parentElement;
+            subtaskDiv.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => subtaskDiv.remove(), 300);
         }
 
         async function handleTaskSubmit(event) {
@@ -1405,35 +1861,35 @@
             
             const title = document.getElementById('task-title').value;
             const description = document.getElementById('task-description').value;
-            const dueDate = document.getElementById('due-date').value;
+            const dueDate = window.addTaskFlatpickr.selectedDates[0];
             const isRecurring = document.getElementById('is-recurring').checked;
             const recurringType = isRecurring ? [document.getElementById('recurring-type').value] : [];
             
-            // Get monthly day if monthly is selected
             const monthlyDay = (isRecurring && document.getElementById('recurring-type').value === 'monthly') 
                 ? parseInt(document.getElementById('monthly-day').value)
                 : null;
             
-            // Get weekdays if weekly is selected
             const recurringWeekDays = (isRecurring && document.getElementById('recurring-type').value === 'weekly')
-                ? Array.from(document.querySelectorAll('.weekday-buttons input:checked'))
+                ? Array.from(document.querySelectorAll('#weekly-options input:checked'))
                     .map(cb => cb.value)
                 : [];
+
+            const subtasks = Array.from(document.querySelectorAll('#subtasks-container .subtask-item'))
+                .map(item => {
+                    const text = item.querySelector('input[type="text"]').value.trim();
+                    const completed = item.querySelector('input[type="checkbox"]').checked;
+                    return text ? `${text}|${completed}` : null;
+                })
+                .filter(Boolean);
 
             const taskData = {
                 userId: currentUser.$id,
                 title: title,
                 description: description || '',
-                dueDate: dueDate ? new Date(dueDate) : null,
-                subtasks: Array.from(document.querySelectorAll('.subtask-item'))
-                    .map(item => {
-                        const text = item.querySelector('input[type="text"]').value.trim();
-                        const completed = item.querySelector('input[type="checkbox"]').checked;
-                        return text ? `${text}|${completed}` : null;
-                    })
-                    .filter(Boolean),
+                dueDate: dueDate ? dueDate.toISOString() : null,
+                subtasks: subtasks,
                 completed: false,
-                createdAt: new Date(),
+                createdAt: new Date().toISOString(),
                 isRecurring: isRecurring,
                 recurringType: recurringType,
                 recurringWeekDays: recurringWeekDays,
@@ -1441,28 +1897,54 @@
             };
 
             try {
-                if (currentTaskId) {
-                    await databases.updateDocument(
-                        databaseId,
-                        collectionId,
-                        currentTaskId,
-                        taskData
-                    );
-                    showMessage('Task updated successfully!', 'success');
-                } else {
-                    await databases.createDocument(
-                        databaseId,
-                        collectionId,
-                        Appwrite.ID.unique(),
-                        taskData
-                    );
-                    showMessage('Task added successfully!', 'success');
-                }
+                // Optimistically update UI
                 closeModal();
-                loadTasks();
+                const tempId = 'temp-' + Date.now();
+                
+                if (currentTaskId) {
+                    // Update existing task
+                    const taskElement = document.querySelector(`[data-task-id="${currentTaskId}"]`);
+                    if (taskElement) {
+                        const updatedTaskElement = createTaskCard({ ...taskData, $id: currentTaskId });
+                        taskElement.replaceWith(updatedTaskElement);
+                    }
+                    showMessage('Task updated successfully!', 'success');
+                    
+                    // Then update backend
+                    await databases.updateDocument(databaseId, collectionId, currentTaskId, taskData);
+                } else {
+                    // Create new task
+                    const tempTaskElement = createTaskCard({ ...taskData, $id: tempId });
+                    document.getElementById('active-tasks').appendChild(tempTaskElement);
+                    showMessage('Task added successfully!', 'success');
+                    
+                    // Then update backend
+                    const response = await databases.createDocument(databaseId, collectionId, Appwrite.ID.unique(), taskData);
+                    
+                    // Update the temporary element with the real ID
+                    const tempElement = document.querySelector(`[data-task-id="${tempId}"]`);
+                    if (tempElement) {
+                        tempElement.setAttribute('data-task-id', response.$id);
+                        tempElement.querySelector('.task-checkbox').onclick = (e) => {
+                            e.stopPropagation();
+                            toggleTaskComplete(response.$id, !response.completed);
+                        };
+                        tempElement.querySelector('.delete-task-btn').onclick = (e) => {
+                            e.stopPropagation();
+                            deleteTask(response.$id);
+                        };
+                    }
+                }
             } catch (error) {
-                console.error('Error details:', error);
+                console.error('Error saving task:', error);
                 showMessage('Error: ' + error.message, 'error');
+                
+                // Revert optimistic update
+                if (!currentTaskId) {
+                    const tempElement = document.querySelector(`[data-task-id="${tempId}"]`);
+                    if (tempElement) tempElement.remove();
+                }
+                loadTasks(); // Reload to ensure consistency
             }
         }
 
@@ -1471,14 +1953,32 @@
             const taskDate = new Date(date);
             const diffTime = Math.abs(taskDate - now);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const isPast = taskDate < now;
             
+            // Handle past dates
+            if (isPast) {
+                if (diffDays === 1) return '1 day ago';
+                if (diffDays < 7) return `${diffDays} days ago`;
+                if (diffDays < 14) return '1 week ago';
+                if (diffDays < 30) return `${Math.floor(diffDays/7)} weeks ago`;
+                if (diffDays < 60) return '1 month ago';
+                if (diffDays < 365) return `${Math.floor(diffDays/30)} months ago`;
+                if (diffDays < 730) return '1 year ago';
+                return `${Math.floor(diffDays/365)} years ago`;
+            }
+            
+            // Handle future dates
             if (diffDays === 1) return 'in 1 day';
-            if (diffDays < 30) return `in ${diffDays} days`;
-            if (diffDays < 365) return `in ${Math.ceil(diffDays/30)} months`;
-            return `in ${Math.ceil(diffDays/365)} years`;
+            if (diffDays < 7) return `in ${diffDays} days`;
+            if (diffDays < 14) return 'in 1 week';
+            if (diffDays < 30) return `in ${Math.floor(diffDays/7)} weeks`;
+            if (diffDays < 60) return 'in 1 month';
+            if (diffDays < 365) return `in ${Math.floor(diffDays/30)} months`;
+            if (diffDays < 730) return 'in 1 year';
+            return `in ${Math.floor(diffDays/365)} years`;
         }
 
-        // Update loadTasks to only show loading on initial load
+        // Update the loadTasks function
         let isInitialLoad = true;
 
         async function loadTasks() {
@@ -1527,23 +2027,28 @@
 
         function createTaskCard(task) {
             const taskElement = document.createElement('div');
-            taskElement.className = 'task-card';
+            taskElement.className = `task-card ${task.completed ? 'completed' : ''}`;
+            taskElement.setAttribute('data-task-id', task.$id);
             
-            const completedSubtasks = task.subtasks?.filter(st => st.completed).length || 0;
-            const totalSubtasks = task.subtasks?.length || 0;
+            // Parse subtasks and count completed ones
+            const subtasks = task.subtasks?.map(st => {
+                const [text, completed] = st.split('|');
+                return { text, completed: completed === 'true' };
+            }) || [];
+            const completedSubtasks = subtasks.filter(st => st.completed).length;
             
             taskElement.innerHTML = `
-                <div class="task-content ${task.completed ? 'completed-task' : ''}" onclick="openTaskDetails('${task.$id}')">
+                <div class="task-content" onclick="openTaskDetails('${task.$id}')">
                     <div class="title">${task.title}</div>
                     <div class="meta">
                         <span class="due-date">
                             <i class="${task.isRecurring ? 'fas fa-sync-alt' : 'far fa-calendar'}"></i>
                             ${task.dueDate ? formatTimeAgo(task.dueDate) : 'No due date'}
                         </span>
-                        ${totalSubtasks > 0 ? `
+                        ${subtasks.length > 0 ? `
                             <span class="subtasks">
-                                <i class="far fa-check-square"></i>
-                                ${completedSubtasks}/${totalSubtasks}
+                                <i class="far fa-square"></i>
+                                ${completedSubtasks}/${subtasks.length}
                             </span>
                         ` : ''}
                     </div>
@@ -1552,7 +2057,7 @@
                     <input type="checkbox" 
                         class="task-checkbox" 
                         ${task.completed ? 'checked' : ''} 
-                        onclick="event.stopPropagation(); toggleTaskComplete('${task.$id}', ${!task.completed})"
+                        onclick="event.stopPropagation(); toggleTaskComplete('${task.$id}')"
                     >
                     <button class="delete-task-btn" onclick="event.stopPropagation(); deleteTask('${task.$id}')">
                         <i class="fas fa-trash"></i>
@@ -1565,9 +2070,12 @@
 
         async function openTaskDetails(taskId) {
             try {
+                if (!taskId) return;
+                
                 const task = await databases.getDocument(databaseId, collectionId, taskId);
                 currentTaskId = taskId;
                 
+                // Initialize or update the details flatpickr
                 if (!window.detailsFlatpickr) {
                     window.detailsFlatpickr = flatpickr("#detail-due-date", {
                         enableTime: true,
@@ -1582,34 +2090,37 @@
                 document.getElementById('detail-description').value = task.description || '';
                 
                 if (task.dueDate) {
-                    window.detailsFlatpickr.setDate(task.dueDate);
+                    window.detailsFlatpickr.setDate(new Date(task.dueDate));
                 } else {
                     window.detailsFlatpickr.clear();
                 }
 
                 // Populate recurring options
-                document.getElementById('detail-is-recurring').checked = task.isRecurring;
+                const isRecurringCheckbox = document.getElementById('detail-is-recurring');
+                const recurringDetails = document.getElementById('detail-recurring-details');
+                isRecurringCheckbox.checked = task.isRecurring;
+                recurringDetails.style.display = task.isRecurring ? 'block' : 'none';
+                
                 if (task.isRecurring) {
-                    document.getElementById('detail-recurring-details').style.display = 'block';
-                    document.getElementById('detail-recurring-type').value = task.recurringType?.[0] || 'daily';
+                    const recurringType = task.recurringType?.[0] || 'daily';
+                    document.getElementById('detail-recurring-type').value = recurringType;
                     
                     // Handle weekly options
-                    if (task.recurringType?.[0] === 'weekly') {
-                        document.getElementById('detail-weekly-options').style.display = 'block';
+                    document.getElementById('detail-weekly-options').style.display = recurringType === 'weekly' ? 'block' : 'none';
+                    if (recurringType === 'weekly') {
                         document.querySelectorAll('#detail-weekly-options input[type="checkbox"]').forEach(cb => {
                             cb.checked = task.recurringWeekDays?.includes(cb.value) || false;
                         });
                     }
                     
                     // Handle monthly options
-                    if (task.recurringType?.[0] === 'monthly') {
-                        document.getElementById('detail-monthly-options').style.display = 'block';
-                        document.getElementById('detail-monthly-day').value = task.monthlyDay || 1;
+                    document.getElementById('detail-monthly-options').style.display = recurringType === 'monthly' ? 'block' : 'none';
+                    if (recurringType === 'monthly') {
+                        generateMonthlyDays('detail-monthly-day');
+                        const monthlyDay = task.monthlyDay || (task.dueDate ? new Date(task.dueDate).getDate() : 1);
+                        document.getElementById('detail-monthly-day').value = monthlyDay;
                     }
                 }
-
-                // Generate monthly days for the details modal
-                generateMonthlyDays('detail-monthly-day');
 
                 // Populate subtasks
                 const subtasksList = document.getElementById('detail-subtasks');
@@ -1619,10 +2130,12 @@
                         addSubtaskToDetails(subtask, index);
                     });
                 }
-
+                
                 document.getElementById('task-details-modal').style.display = 'block';
                 addTaskDetailsListeners();
+
             } catch (error) {
+                console.error('Error opening task details:', error);
                 showMessage('Error loading task details: ' + error.message, 'error');
             }
         }
@@ -1631,7 +2144,7 @@
             const container = document.getElementById('detail-subtasks');
             const [text = '', completed = false] = subtaskString.split('|');
             const subtaskDiv = document.createElement('div');
-            subtaskDiv.className = 'detail-subtask-item';
+            subtaskDiv.className = `detail-subtask-item ${completed === 'true' ? 'completed' : ''}`;
             subtaskDiv.innerHTML = `
                 <input type="checkbox" ${completed === 'true' ? 'checked' : ''}>
                 <input type="text" value="${text}" placeholder="Enter subtask">
@@ -1640,19 +2153,42 @@
                 </button>
             `;
 
-            // Add event listeners directly
+            // Add event listeners
             const checkbox = subtaskDiv.querySelector('input[type="checkbox"]');
             const textInput = subtaskDiv.querySelector('input[type="text"]');
             const deleteBtn = subtaskDiv.querySelector('.btn-danger');
 
-            checkbox.addEventListener('change', () => saveTaskChanges());
+            checkbox.addEventListener('change', () => {
+                // Optimistically update UI
+                const wasCompleted = subtaskDiv.classList.contains('completed');
+                subtaskDiv.classList.toggle('completed', !wasCompleted);
+                checkbox.checked = !wasCompleted;
+                
+                // Then save changes
+                saveTaskChanges().catch(() => {
+                    // Revert on error
+                    subtaskDiv.classList.toggle('completed', wasCompleted);
+                    checkbox.checked = wasCompleted;
+                });
+            });
+            
             textInput.addEventListener('input', debounce(() => saveTaskChanges(), 500));
+            
             deleteBtn.addEventListener('click', () => {
-                subtaskDiv.remove();
-                saveTaskChanges();
+                // Optimistically remove subtask
+                subtaskDiv.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => {
+                    subtaskDiv.remove();
+                    saveTaskChanges().catch(() => {
+                        // Revert on error
+                        subtaskDiv.style.animation = '';
+                        container.appendChild(subtaskDiv);
+                    });
+                }, 300);
             });
 
             container.appendChild(subtaskDiv);
+            textInput.focus();
         }
 
         function updateSubtask(index, completed = null, text = null) {
@@ -1676,53 +2212,130 @@
         }
 
         async function saveTaskChanges() {
-            const isRecurring = document.getElementById('detail-is-recurring').checked;
-            const recurringType = isRecurring ? [document.getElementById('detail-recurring-type').value] : [];
+            if (!currentTaskId) return;
             
-            // Get monthly day if monthly is selected
-            const monthlyDay = (isRecurring && document.getElementById('detail-recurring-type').value === 'monthly') 
-                ? parseInt(document.getElementById('detail-monthly-day').value)
-                : null;
+            const isRecurringCheckbox = document.getElementById('detail-is-recurring');
+            const recurringTypeSelect = document.getElementById('detail-recurring-type');
             
-            // Get weekdays if weekly is selected
-            const recurringWeekDays = (isRecurring && document.getElementById('detail-recurring-type').value === 'weekly')
-                ? Array.from(document.querySelectorAll('#detail-weekly-options input:checked'))
-                    .map(cb => cb.value)
-                : [];
+            const isRecurring = isRecurringCheckbox?.checked || false;
+            const recurringType = isRecurring && recurringTypeSelect ? [recurringTypeSelect.value] : [];
+            
+            let monthlyDay = null;
+            if (isRecurring && recurringTypeSelect?.value === 'monthly') {
+                const monthlyDaySelect = document.getElementById('detail-monthly-day');
+                if (monthlyDaySelect) {
+                    monthlyDay = parseInt(monthlyDaySelect.value);
+                }
+            }
+
+            const subtasks = Array.from(document.querySelectorAll('#detail-subtasks .detail-subtask-item'))
+                .map(item => {
+                    const text = item.querySelector('input[type="text"]').value.trim();
+                    const completed = item.querySelector('input[type="checkbox"]').checked;
+                    return text ? `${text}|${completed}` : null;
+                })
+                .filter(Boolean);
 
             const taskData = {
-                title: document.getElementById('detail-title').value,
-                description: document.getElementById('detail-description').value,
-                dueDate: window.detailsFlatpickr.selectedDates[0] || null,
-                subtasks: Array.from(document.querySelectorAll('#detail-subtasks .detail-subtask-item'))
-                    .map(item => {
-                        const text = item.querySelector('input[type="text"]').value.trim();
-                        const completed = item.querySelector('input[type="checkbox"]').checked;
-                        return text ? `${text}|${completed}` : null;
-                    })
-                    .filter(Boolean),
+                title: document.getElementById('detail-title')?.value || '',
+                description: document.getElementById('detail-description')?.value || '',
+                dueDate: window.detailsFlatpickr?.selectedDates[0]?.toISOString(),
                 isRecurring: isRecurring,
                 recurringType: recurringType,
-                recurringWeekDays: recurringWeekDays,
-                monthlyDay: monthlyDay
+                recurringWeekDays: Array.from(document.querySelectorAll('#detail-weekly-options input:checked'))
+                    .map(cb => cb.value),
+                monthlyDay: monthlyDay,
+                subtasks: subtasks
             };
 
             try {
+                // Optimistically update the task card in the list if it exists
+                const taskCard = document.querySelector(`[data-task-id="${currentTaskId}"]`);
+                if (taskCard) {
+                    const titleElement = taskCard.querySelector('.title');
+                    const dueDateElement = taskCard.querySelector('.due-date');
+                    const subtasksElement = taskCard.querySelector('.subtasks');
+                    
+                    if (titleElement) {
+                        titleElement.textContent = taskData.title;
+                    }
+                    
+                    if (dueDateElement) {
+                        dueDateElement.innerHTML = `
+                            <i class="${taskData.isRecurring ? 'fas fa-sync-alt' : 'far fa-calendar'}"></i>
+                            ${taskData.dueDate ? formatTimeAgo(taskData.dueDate) : 'No due date'}
+                        `;
+                    }
+                    
+                    if (subtasksElement && subtasks.length > 0) {
+                        const completedSubtasks = subtasks.filter(st => st.split('|')[1] === 'true').length;
+                        subtasksElement.innerHTML = `
+                            <i class="far fa-check-square"></i>
+                            ${completedSubtasks}/${subtasks.length}
+                        `;
+                    }
+                }
+
                 await databases.updateDocument(databaseId, collectionId, currentTaskId, taskData);
-                await loadTasks(); // Refresh the task list
             } catch (error) {
-                showMessage('Error updating task: ' + error.message, 'error');
+                console.error('Error saving task:', error);
+                showMessage('Error saving task: ' + error.message, 'error');
+                // Revert optimistic update by reloading tasks
+                loadTasks();
             }
         }
 
-        async function toggleTaskComplete(taskId, completed) {
+        async function toggleTaskComplete(taskId) {
             try {
-                event.preventDefault();
-                event.stopPropagation();
-                await databases.updateDocument(databaseId, collectionId, taskId, { completed });
-                showMessage(`Task marked as ${completed ? 'completed' : 'active'}!`, 'success');
-                loadTasks();
+                event?.preventDefault();
+                event?.stopPropagation();
+
+                // Store the task element before any changes
+                const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+                if (!taskElement) return;
+
+                // Get the checkbox element
+                const checkbox = taskElement.querySelector('.task-checkbox');
+                if (!checkbox) return;
+
+                // Store the current state before making changes
+                const wasCompleted = taskElement.classList.contains('completed');
+                const newCompleted = !wasCompleted;
+
+                // Optimistically update the UI
+                taskElement.classList.toggle('completed', newCompleted);
+                checkbox.checked = newCompleted;
+
+                if (newCompleted) {
+                    createConfetti();
+                    const completedContainer = document.getElementById('completed-tasks');
+                    completedContainer.appendChild(taskElement);
+                } else {
+                    const activeContainer = document.getElementById('active-tasks');
+                    activeContainer.appendChild(taskElement);
+                }
+
+                showMessage(`Task marked as ${newCompleted ? 'completed' : 'active'}!`, 'success');
+
+                // Then update the backend
+                await databases.updateDocument(databaseId, collectionId, taskId, { 
+                    completed: newCompleted 
+                });
             } catch (error) {
+                // Revert the UI if the backend update fails
+                if (taskElement) {
+                    taskElement.classList.toggle('completed', wasCompleted);
+                    checkbox.checked = wasCompleted;
+                    
+                    if (wasCompleted) {
+                        const completedContainer = document.getElementById('completed-tasks');
+                        completedContainer.appendChild(taskElement);
+                    } else {
+                        const activeContainer = document.getElementById('active-tasks');
+                        activeContainer.appendChild(taskElement);
+                    }
+                }
+                
                 if (error.code === 401) {
                     redirectToLogin();
                 } else {
@@ -1731,17 +2344,71 @@
             }
         }
 
+        // Add confetti functions
+        function createConfetti() {
+            const colors = ['#34d399', '#059669', '#10b981', '#6ee7b7', '#a7f3d0'];
+            const container = document.getElementById('confetti-container');
+            const confettiCount = 50;
+
+            // Clear any existing confetti
+            container.innerHTML = '';
+
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = (Math.random() * 8 + 6) + 'px';
+                confetti.style.height = (Math.random() * 8 + 6) + 'px';
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                // Randomly make some confetti pieces different shapes
+                if (Math.random() > 0.6) {
+                    confetti.style.borderRadius = '50%';
+                } else if (Math.random() > 0.3) {
+                    confetti.style.borderRadius = '2px';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg) skew(${Math.random() * 25}deg)`;
+                }
+
+                container.appendChild(confetti);
+                
+                // Add the active class after a small delay to trigger the animation
+                setTimeout(() => {
+                    confetti.classList.add('active');
+                }, 0);
+            }
+
+            // Clean up confetti after animation
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
         async function deleteTask(taskId) {
             try {
                 event?.preventDefault();
                 event?.stopPropagation();
                 
-                await databases.deleteDocument(databaseId, collectionId, taskId);
+                // Optimistically update UI
+                const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+                if (taskElement) {
+                    taskElement.style.animation = 'fadeOut 0.3s ease';
+                    setTimeout(() => taskElement.remove(), 300);
+                }
                 showMessage('Task deleted successfully!', 'success');
                 closeModal();
                 closeTaskDetails();
-                loadTasks();
+
+                // Then update backend
+                await databases.deleteDocument(databaseId, collectionId, taskId);
             } catch (error) {
+                // Revert UI if backend update fails
+                if (taskElement) {
+                    taskElement.style.animation = '';
+                    taskElement.style.display = 'flex';
+                }
+                
                 if (error.code === 401) {
                     redirectToLogin();
                 } else {
@@ -1764,7 +2431,7 @@
             document.getElementById('settings-modal').style.display = 'block';
             // Load saved settings
             const savedTheme = localStorage.getItem('theme') || 'system';
-            document.getElementById('theme-select').checked = savedTheme === 'dark';
+            document.getElementById('theme-select').value = savedTheme;
             const savedView = localStorage.getItem('defaultView') || 'all';
             document.getElementById('default-view').value = savedView;
         }
@@ -1777,8 +2444,60 @@
             const isRecurring = document.getElementById('is-recurring').checked;
             const recurringDetails = document.getElementById('recurring-details');
             recurringDetails.style.display = isRecurring ? 'block' : 'none';
+            
+            // Handle calendar disabling
+            if (window.addTaskFlatpickr) {
+                const calendar = window.addTaskFlatpickr.calendarContainer;
+                if (calendar) {
+                    if (isRecurring) {
+                        calendar.classList.add('disabled');
+                        // Set initial date based on recurring type
+                        const recurringType = document.getElementById('recurring-type').value;
+                        updateRecurringDate(recurringType);
+                    } else {
+                        calendar.classList.remove('disabled');
+                    }
+                }
+            }
         }
 
+        function updateRecurringDate(type) {
+            const today = new Date();
+            let nextDate = new Date(today);
+            
+            switch(type) {
+                case 'daily':
+                    // Set to tomorrow
+                    nextDate.setDate(today.getDate() + 1);
+                    break;
+                    
+                case 'weekly':
+                    const selectedWeekdays = Array.from(document.querySelectorAll('#weekly-options input:checked'))
+                        .map(cb => parseInt(cb.value));
+                    if (selectedWeekdays.length > 0) {
+                        const currentDay = today.getDay();
+                        const nextDay = selectedWeekdays.find(day => day > currentDay) || selectedWeekdays[0];
+                        const daysToAdd = nextDay > currentDay ? nextDay - currentDay : 7 - currentDay + nextDay;
+                        nextDate.setDate(today.getDate() + daysToAdd);
+                    }
+                    break;
+                    
+                case 'monthly':
+                    const monthlyDay = parseInt(document.getElementById('monthly-day').value);
+                    nextDate.setDate(monthlyDay);
+                    // If the day has already passed this month, move to next month
+                    if (nextDate < today) {
+                        nextDate.setMonth(nextDate.getMonth() + 1);
+                    }
+                    break;
+            }
+            
+            if (window.addTaskFlatpickr) {
+                window.addTaskFlatpickr.setDate(nextDate);
+            }
+        }
+
+        // Add event listeners for recurring options
         document.getElementById('recurring-type').addEventListener('change', function(e) {
             const weeklyOptions = document.getElementById('weekly-options');
             const monthlyOptions = document.getElementById('monthly-options');
@@ -1786,108 +2505,111 @@
             weeklyOptions.style.display = e.target.value === 'weekly' ? 'block' : 'none';
             monthlyOptions.style.display = e.target.value === 'monthly' ? 'block' : 'none';
 
-            if (e.target.value === 'monthly') {
-                handleMonthlyDayChange();
-            } else if (e.target.value === 'weekly') {
-                const selectedWeekdays = Array.from(document.querySelectorAll('#weekly-options input:checked'))
-                    .map(cb => parseInt(cb.value));
-                if (selectedWeekdays.length > 0) {
-                    const today = new Date();
-                    const currentDay = today.getDay();
-                    const nextDay = selectedWeekdays.find(day => day >= currentDay) || selectedWeekdays[0];
-                    const daysToAdd = nextDay >= currentDay ? nextDay - currentDay : 7 - currentDay + nextDay;
-                    const nextDate = new Date(today);
-                    nextDate.setDate(today.getDate() + daysToAdd);
-                    
-                    if (window.detailsFlatpickr) {
-                        window.detailsFlatpickr.setDate(nextDate);
-                    }
+            updateRecurringDate(e.target.value);
+        });
+
+        // Add event listeners for weekly checkboxes
+        document.querySelectorAll('#weekly-options input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (document.getElementById('is-recurring').checked) {
+                    updateRecurringDate('weekly');
                 }
+            });
+        });
+
+        // Add event listener for monthly day select
+        document.getElementById('monthly-day').addEventListener('change', () => {
+            if (document.getElementById('is-recurring').checked) {
+                updateRecurringDate('monthly');
             }
         });
 
-        // Add function to handle recurring tasks
-        async function handleRecurringTasks() {
-            const response = await databases.listDocuments(databaseId, collectionId, [
-                Appwrite.Query.equal('userId', currentUser.$id),
-                Appwrite.Query.equal('isRecurring', true)
-            ]);
-
-            for (const task of response.documents) {
-                if (!task.isRecurring) continue;
-
-                const today = new Date();
-                const dueDate = new Date(task.dueDate);
-                let shouldCreateNew = false;
-                let nextDueDate = new Date(dueDate);
-
-                switch (task.recurringType[0]) {
-                    case 'daily':
-                        if (dueDate < today) {
-                            // Find next due date after today
-                            while (nextDueDate < today) {
-                                nextDueDate.setDate(nextDueDate.getDate() + 1);
-                            }
-                            shouldCreateNew = true;
-                        }
-                        break;
-
-                    case 'weekly':
-                        if (dueDate < today && task.recurringWeekDays?.length) {
-                            // Find the next occurrence after today
-                            let found = false;
-                            while (!found && nextDueDate <= today) {
-                                nextDueDate.setDate(nextDueDate.getDate() + 1);
-                                if (task.recurringWeekDays.includes(nextDueDate.getDay().toString())) {
-                                    found = true;
-                                    shouldCreateNew = true;
-                                }
-                            }
-                        }
-                        break;
-
-                    case 'monthly':
-                        if (dueDate < today && task.monthlyDay) {
-                            // Find next monthly occurrence
-                            while (nextDueDate <= today) {
-                                nextDueDate.setMonth(nextDueDate.getMonth() + 1);
-                                nextDueDate.setDate(task.monthlyDay);
-                            }
-                            shouldCreateNew = true;
-                        }
-                        break;
-                }
-
-                if (shouldCreateNew) {
-                    // Create next occurrence and mark current as completed
-                    await createRecurringTask(task, nextDueDate);
-                    await databases.updateDocument(databaseId, collectionId, task.$id, {
-                        completed: true
-                    });
+        // Update the details view recurring options
+        function toggleDetailRecurringOptions() {
+            const isRecurring = document.getElementById('detail-is-recurring').checked;
+            const recurringDetails = document.getElementById('detail-recurring-details');
+            recurringDetails.style.display = isRecurring ? 'block' : 'none';
+            
+            if (window.detailsFlatpickr) {
+                const calendar = window.detailsFlatpickr.calendarContainer;
+                if (calendar) {
+                    if (isRecurring) {
+                        calendar.classList.add('disabled');
+                        // Set initial date based on recurring type
+                        const recurringType = document.getElementById('detail-recurring-type').value;
+                        updateDetailRecurringDate(recurringType);
+                    } else {
+                        calendar.classList.remove('disabled');
+                    }
                 }
             }
         }
 
-        async function createRecurringTask(originalTask, nextDueDate) {
-            const newTaskData = {
-                userId: originalTask.userId,
-                title: originalTask.title,
-                description: originalTask.description,
-                dueDate: nextDueDate,
-                completed: false,
-                createdAt: new Date(),
-                isRecurring: originalTask.isRecurring,
-                recurringType: originalTask.recurringType,
-                recurringWeekDays: originalTask.recurringWeekDays
-            };
-
-            await databases.createDocument(
-                databaseId,
-                collectionId,
-                Appwrite.ID.unique(),
-                newTaskData
-            );
+        function updateDetailRecurringDate(type) {
+            const today = new Date();
+            let nextDate = new Date(today);
+            
+            switch(type) {
+                case 'daily':
+                    // Set to tomorrow
+                    nextDate.setDate(today.getDate() + 1);
+                    break;
+                    
+                case 'weekly':
+                    const selectedWeekdays = Array.from(document.querySelectorAll('#detail-weekly-options input:checked'))
+                        .map(cb => parseInt(cb.value));
+                    if (selectedWeekdays.length > 0) {
+                        const currentDay = today.getDay();
+                        const nextDay = selectedWeekdays.find(day => day > currentDay) || selectedWeekdays[0];
+                        const daysToAdd = nextDay > currentDay ? nextDay - currentDay : 7 - currentDay + nextDay;
+                        nextDate.setDate(today.getDate() + daysToAdd);
+                    }
+                    break;
+                    
+                case 'monthly':
+                    const monthlyDay = parseInt(document.getElementById('detail-monthly-day').value);
+                    nextDate.setDate(monthlyDay);
+                    // If the day has already passed this month, move to next month
+                    if (nextDate < today) {
+                        nextDate.setMonth(nextDate.getMonth() + 1);
+                    }
+                    break;
+            }
+            
+            if (window.detailsFlatpickr) {
+                window.detailsFlatpickr.setDate(nextDate);
+            }
         }
+
+        function handleDetailRecurringTypeChange() {
+            const type = document.getElementById('detail-recurring-type').value;
+            document.getElementById('detail-weekly-options').style.display = type === 'weekly' ? 'block' : 'none';
+            document.getElementById('detail-monthly-options').style.display = type === 'monthly' ? 'block' : 'none';
+            
+            if (document.getElementById('detail-is-recurring').checked) {
+                updateDetailRecurringDate(type);
+            }
+            
+            saveTaskChanges();
+        }
+
+        // Add event listeners for detail weekly checkboxes
+        document.querySelectorAll('#detail-weekly-options input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (document.getElementById('detail-is-recurring').checked) {
+                    updateDetailRecurringDate('weekly');
+                }
+                saveTaskChanges();
+            });
+        });
+
+        // Add event listener for detail monthly day select
+        document.getElementById('detail-monthly-day').addEventListener('change', () => {
+            if (document.getElementById('detail-is-recurring').checked) {
+                updateDetailRecurringDate('monthly');
+            }
+            handleMonthlyDayChange();
+        });
 
         // Initialize the page
         window.onload = function() {
@@ -1959,10 +2681,13 @@
             }
         }
 
-        // Add this function to generate monthly days
+        // Update the generateMonthlyDays function
         function generateMonthlyDays(elementId = 'monthly-day') {
             const monthlySelect = document.getElementById(elementId);
             if (!monthlySelect) return;
+            
+            // Store current value before clearing
+            const currentValue = monthlySelect.value;
             
             monthlySelect.innerHTML = '';
             for (let i = 1; i <= 31; i++) {
@@ -1970,6 +2695,11 @@
                 option.value = i;
                 option.textContent = `${i}${getDaySuffix(i)}`;
                 monthlySelect.appendChild(option);
+            }
+            
+            // Restore the selected value
+            if (currentValue) {
+                monthlySelect.value = currentValue;
             }
         }
 
@@ -1999,7 +2729,7 @@
             });
             
             // Add listener for monthly day select
-            document.getElementById('detail-monthly-day').addEventListener('change', () => saveTaskChanges());
+            document.getElementById('detail-monthly-day').addEventListener('change', handleMonthlyDayChange);
         }
 
         // Add debounce function to prevent too many saves
@@ -2019,13 +2749,35 @@
             const isRecurring = document.getElementById('detail-is-recurring').checked;
             const recurringDetails = document.getElementById('detail-recurring-details');
             recurringDetails.style.display = isRecurring ? 'block' : 'none';
-            saveTaskChanges();
+            
+            if (window.detailsFlatpickr) {
+                const calendar = window.detailsFlatpickr.calendarContainer;
+                if (calendar) {
+                    if (isRecurring) {
+                        calendar.classList.add('disabled');
+                    } else {
+                        calendar.classList.remove('disabled');
+                    }
+                }
+            }
+
+            if (isRecurring) {
+                handleRecurringTypeChange();
+            }
         }
 
         function handleDetailRecurringTypeChange() {
             const type = document.getElementById('detail-recurring-type').value;
             document.getElementById('detail-weekly-options').style.display = type === 'weekly' ? 'block' : 'none';
             document.getElementById('detail-monthly-options').style.display = type === 'monthly' ? 'block' : 'none';
+            
+            // Reset and update monthly day if needed
+            if (type === 'monthly') {
+                const currentDate = window.detailsFlatpickr.selectedDates[0];
+                const monthlyDay = currentDate.getDate();
+                document.getElementById('detail-monthly-day').value = monthlyDay;
+            }
+            
             saveTaskChanges();
         }
 
@@ -2035,26 +2787,31 @@
             subtaskDiv.className = 'detail-subtask-item';
             subtaskDiv.innerHTML = `
                 <input type="checkbox">
-                <input type="text" placeholder="Enter subtask">
+                <input type="text" value="" placeholder="Enter subtask">
                 <button class="btn btn-danger">
                     <i class="fas fa-trash"></i>
                 </button>
             `;
 
-            // Add event listeners directly
+            // Add event listeners
             const checkbox = subtaskDiv.querySelector('input[type="checkbox"]');
             const textInput = subtaskDiv.querySelector('input[type="text"]');
             const deleteBtn = subtaskDiv.querySelector('.btn-danger');
 
-            checkbox.addEventListener('change', () => saveTaskChanges());
+            checkbox.addEventListener('change', () => {
+                subtaskDiv.classList.toggle('completed', checkbox.checked);
+                saveTaskChanges();
+            });
+            
             textInput.addEventListener('input', debounce(() => saveTaskChanges(), 500));
+            
             deleteBtn.addEventListener('click', () => {
                 subtaskDiv.remove();
                 saveTaskChanges();
             });
 
             container.appendChild(subtaskDiv);
-            textInput.focus(); // Focus the new input
+            textInput.focus();
         }
 
         // Add these functions for theme management
@@ -2063,18 +2820,18 @@
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme) {
                 document.documentElement.setAttribute('data-theme', savedTheme);
-                document.getElementById('theme-select').checked = savedTheme === 'dark';
+                document.getElementById('theme-select').value = savedTheme;
             } else {
                 // Check system preference
                 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                     document.documentElement.setAttribute('data-theme', 'dark');
-                    document.getElementById('theme-select').checked = true;
+                    document.getElementById('theme-select').value = 'dark';
                 }
             }
 
             // Listen for system theme changes
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                if (document.getElementById('theme-select').checked) {
+                if (document.getElementById('theme-select').value === 'dark') {
                     document.documentElement.setAttribute('data-theme', 'dark');
                 } else {
                     document.documentElement.setAttribute('data-theme', 'light');
@@ -2093,27 +2850,35 @@
             localStorage.setItem('theme', value);
         }
 
-        // Update the handleMonthlyDayChange function
+        // Clean handleMonthlyDayChange function
         function handleMonthlyDayChange() {
-            const monthlyDay = parseInt(document.getElementById('monthly-day').value);
-            const today = new Date();
-            const newDate = new Date();
-            
-            // Set the date to the selected monthly day
-            newDate.setDate(monthlyDay);
-            
-            // If the new date would be before today, move to next month
-            if (newDate < today) {
-                newDate.setMonth(newDate.getMonth() + 1);
-            }
-            
-            // Update both date pickers if they exist
-            if (window.detailsFlatpickr) {
-                window.detailsFlatpickr.setDate(newDate);
-            }
+            const monthlyDaySelect = document.getElementById('detail-monthly-day');
+            if (!monthlyDaySelect) return;
+
+            const selectedDay = parseInt(monthlyDaySelect.value);
+            const taskId = currentTaskId;
+
+            // Update the task in the database with the new monthly day
+            databases.updateDocument(databaseId, collectionId, taskId, {
+                monthlyDay: selectedDay
+            })
+            .then(() => {
+                showMessage('Monthly recurring day updated successfully!', 'success');
+                
+                // Also update the date picker to match
+                if (window.detailsFlatpickr) {
+                    const currentDate = window.detailsFlatpickr.selectedDates[0] || new Date();
+                    const newDate = new Date(currentDate);
+                    newDate.setDate(selectedDay);
+                    window.detailsFlatpickr.setDate(newDate);
+                }
+            })
+            .catch(error => {
+                showMessage('Error updating monthly day: ' + error.message, 'error');
+            });
         }
 
-        // Add these functions
+        // Add back the loading functions
         function showLoading() {
             document.getElementById('loading-screen').style.display = 'flex';
         }
@@ -2125,6 +2890,218 @@
                 loader.style.display = 'none';
                 loader.style.opacity = '1';
             }, 300);
+        }
+
+        // Update the date picker initialization
+        function initializeDatePicker(elementId, defaultDate = null) {
+            const picker = flatpickr(`#${elementId}`, {
+                enableTime: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                defaultDate: defaultDate,
+                minDate: 'today',
+                noCalendar: false, // Will be toggled based on recurring state
+                onChange: function(selectedDates, dateStr, instance) {
+                    const selectedDate = selectedDates[0];
+                    const now = new Date();
+                    now.setSeconds(0, 0);
+                    
+                    const isRecurring = document.getElementById('detail-is-recurring')?.checked || 
+                                       document.getElementById('is-recurring')?.checked;
+
+                    if (isRecurring) {
+                        // For recurring tasks, only update the time
+                        const currentDate = instance._initialDate || new Date();
+                        const newDate = new Date(currentDate);
+                        newDate.setHours(selectedDate.getHours());
+                        newDate.setMinutes(selectedDate.getMinutes());
+                        
+                        // Store the initial date if not already stored
+                        if (!instance._initialDate) {
+                            instance._initialDate = new Date(currentDate);
+                        }
+                        
+                        instance.setDate(newDate);
+                        return;
+                    }
+
+                    // For non-recurring tasks, handle as before
+                    if (selectedDate < now) {
+                        instance.setDate(now);
+                        showMessage('Cannot select past dates', 'error');
+                    }
+                },
+                onOpen: function(selectedDates, dateStr, instance) {
+                    const isRecurring = document.getElementById('detail-is-recurring')?.checked || 
+                                       document.getElementById('is-recurring')?.checked;
+                    
+                    if (isRecurring) {
+                        // Switch to time-only mode for recurring tasks
+                        instance.set('noCalendar', true);
+                        instance.set('dateFormat', "H:i");
+                        
+                        // Store current date when opening
+                        instance._initialDate = instance._initialDate || new Date(instance.selectedDates[0]);
+                        
+                        // Add class for time-only styling
+                        instance.calendarContainer.classList.add('time-only-picker');
+                    } else {
+                        // Switch back to full calendar mode
+                        instance.set('noCalendar', false);
+                        instance.set('dateFormat', "Y-m-d H:i");
+                        instance.calendarContainer.classList.remove('time-only-picker');
+                    }
+                }
+            });
+            return picker;
+        }
+
+        // Update the add task form initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the add task date picker
+            window.addTaskFlatpickr = flatpickr("#due-date", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
+                minDate: 'today',
+                defaultDate: new Date(),
+                onChange: function(selectedDates, dateStr, instance) {
+                    const selectedDate = selectedDates[0];
+                    const now = new Date();
+                    now.setSeconds(0, 0);
+                    
+                    // Prevent selecting past dates
+                    if (selectedDate < now) {
+                        instance.setDate(now);
+                        showMessage('Cannot select past dates', 'error');
+                        return;
+                    }
+
+                    const isRecurring = document.getElementById('is-recurring').checked;
+                    const recurringType = document.getElementById('recurring-type').value;
+                    
+                    if (isRecurring) {
+                        let validDate = new Date(selectedDate);
+                        
+                        switch (recurringType) {
+                            case 'monthly':
+                                const monthlyDay = parseInt(document.getElementById('monthly-day').value);
+                                validDate.setDate(monthlyDay);
+                                if (validDate < now) {
+                                    validDate.setMonth(validDate.getMonth() + 1);
+                                }
+                                instance.setDate(validDate);
+                                break;
+                                
+                            case 'weekly':
+                                const selectedWeekdays = Array.from(document.querySelectorAll('#weekly-options input:checked'))
+                                    .map(cb => parseInt(cb.value));
+                                if (selectedWeekdays.length > 0) {
+                                    const currentDay = validDate.getDay();
+                                    if (!selectedWeekdays.includes(currentDay)) {
+                                        const nextDay = selectedWeekdays.find(day => day > currentDay) ?? selectedWeekdays[0];
+                                        const daysToAdd = nextDay > currentDay ? 
+                                            nextDay - currentDay : 
+                                            7 - currentDay + nextDay;
+                                        validDate.setDate(validDate.getDate() + daysToAdd);
+                                        instance.setDate(validDate);
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                }
+            });
+        });
+
+        // Add function to handle recurring tasks
+        async function handleRecurringTasks() {
+            try {
+                const response = await databases.listDocuments(databaseId, collectionId, [
+                    Appwrite.Query.equal('userId', currentUser.$id),
+                    Appwrite.Query.equal('isRecurring', true)
+                ]);
+
+                for (const task of response.documents) {
+                    if (!task.isRecurring) continue;
+
+                    const today = new Date();
+                    const dueDate = new Date(task.dueDate);
+                    let shouldCreateNew = false;
+                    let nextDueDate = new Date(dueDate);
+
+                    switch (task.recurringType[0]) {
+                        case 'daily':
+                            if (dueDate < today) {
+                                // Find next due date after today
+                                while (nextDueDate < today) {
+                                    nextDueDate.setDate(nextDueDate.getDate() + 1);
+                                }
+                                shouldCreateNew = true;
+                            }
+                            break;
+
+                        case 'weekly':
+                            if (dueDate < today && task.recurringWeekDays?.length) {
+                                // Find the next occurrence after today
+                                let found = false;
+                                while (!found && nextDueDate <= today) {
+                                    nextDueDate.setDate(nextDueDate.getDate() + 1);
+                                    if (task.recurringWeekDays.includes(nextDueDate.getDay().toString())) {
+                                        found = true;
+                                        shouldCreateNew = true;
+                                    }
+                                }
+                            }
+                            break;
+
+                        case 'monthly':
+                            if (dueDate < today && task.monthlyDay) {
+                                // Find next monthly occurrence
+                                while (nextDueDate <= today) {
+                                    nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+                                    nextDueDate.setDate(task.monthlyDay);
+                                }
+                                shouldCreateNew = true;
+                            }
+                            break;
+                    }
+
+                    if (shouldCreateNew) {
+                        // Create next occurrence and mark current as completed
+                        await createRecurringTask(task, nextDueDate);
+                        await databases.updateDocument(databaseId, collectionId, task.$id, {
+                            completed: true
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error handling recurring tasks:', error);
+                showMessage('Error handling recurring tasks: ' + error.message, 'error');
+            }
+        }
+
+        async function createRecurringTask(originalTask, nextDueDate) {
+            const newTaskData = {
+                userId: originalTask.userId,
+                title: originalTask.title,
+                description: originalTask.description,
+                dueDate: nextDueDate.toISOString(),
+                subtasks: originalTask.subtasks || [],
+                completed: false,
+                createdAt: new Date().toISOString(),
+                isRecurring: originalTask.isRecurring,
+                recurringType: originalTask.recurringType,
+                recurringWeekDays: originalTask.recurringWeekDays,
+                monthlyDay: originalTask.monthlyDay
+            };
+
+            try {
+                await databases.createDocument(databaseId, collectionId, Appwrite.ID.unique(), newTaskData);
+            } catch (error) {
+                console.error('Error creating recurring task:', error);
+                showMessage('Error creating recurring task: ' + error.message, 'error');
+            }
         }
     </script>
 </body>
