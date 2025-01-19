@@ -372,10 +372,141 @@
         [data-theme="dark"] .mode-switch a {
             color: var(--link-color-dark);
         }
+
+        /* Add loading screen styles */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid var(--border-color);
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .loading-text {
+            color: var(--text-color);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* Hide forms initially */
+        #login-form, #register-form {
+            display: none;
+        }
+
+        /* Style the theme selector better */
+        .settings-content select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+            background-size: 1em;
+            padding-right: 2.5rem;
+        }
+
+        .settings-content label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* Improve theme selector appearance */
+        #theme-select {
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 0.75rem 1rem;
+            width: 100%;
+            font-size: 1rem;
+            color: var(--text-color);
+            background-color: var(--input-bg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #theme-select:hover {
+            border-color: var(--link-color-light);
+        }
+
+        [data-theme="dark"] #theme-select:hover {
+            border-color: var(--link-color-dark);
+        }
+
+        #theme-select:focus {
+            outline: none;
+            border-color: var(--link-color-light);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        [data-theme="dark"] #theme-select:focus {
+            border-color: var(--link-color-dark);
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+        }
+
+        /* Style the subtask checkboxes */
+        .subtask-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtask-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            appearance: none;
+            background-color: var(--input-bg);
+            position: relative;
+            vertical-align: middle;
+        }
+
+        .subtask-item input[type="checkbox"]:checked {
+            background-color: var(--link-color-light);
+            border-color: var(--link-color-light);
+        }
+
+        .subtask-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        [data-theme="dark"] .subtask-item input[type="checkbox"]:checked {
+            background-color: var(--link-color-dark);
+            border-color: var(--link-color-dark);
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div id="loading-screen" class="loading-screen">
+            <div class="loader"></div>
+            <div class="loading-text">Loading...</div>
+        </div>
         <h1>Hxdeck Task Manager</h1>
         <button class="settings-btn" onclick="openSettings()">
             <i class="fas fa-cog"></i>
@@ -487,6 +618,7 @@
         }
 
         function switchMode(mode) {
+            document.getElementById('loading-screen').style.display = 'none';
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
             const loginSwitch = document.getElementById('login-switch');
@@ -597,7 +729,9 @@
         }
 
         function showLoggedOutState() {
-            switchMode('login');
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('register-form').style.display = 'none';
             document.querySelector('.mode-switch').style.display = 'block';
             document.querySelector('.logout-btn').style.display = 'none';
             document.getElementById('login-email').value = '';
